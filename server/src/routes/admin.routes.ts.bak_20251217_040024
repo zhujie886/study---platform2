@@ -1,0 +1,36 @@
+import { Router } from 'express';
+import {
+  adminLogin,
+  getAllUsers,
+  getDashboardStats,
+  deleteUser,
+  updateUser,
+  getAllMemos,
+  getAllMeetings,
+  getAllPosts,
+  deletePost
+} from '../controllers/admin.controller';
+import { isAdmin, authenticateToken } from '../middleware/auth.middleware'; // ✅ 引入 authenticateToken
+
+const router = Router();
+
+// 登录接口不需要验证
+router.post('/login', adminLogin);
+
+// ✅ 关键修复：先验证 Token (authenticateToken)，再验证管理员权限 (isAdmin)
+// 顺序非常重要！没有 authenticateToken，isAdmin 就读取不到用户信息
+router.use(authenticateToken); 
+router.use(isAdmin); 
+
+// 以下所有接口现在都能正确识别 'admin' 身份了
+router.get('/stats', getDashboardStats);
+router.get('/users', getAllUsers);
+router.put('/users/:id', updateUser);
+router.delete('/users/:id', deleteUser);
+
+router.get('/memos', getAllMemos);
+router.get('/meetings', getAllMeetings);
+router.get('/posts', getAllPosts);
+router.delete('/posts/:id', deletePost);
+
+export default router;

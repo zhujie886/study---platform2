@@ -1,0 +1,886 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Doctor 全景天眼报告</title>
+    <style>
+        :root {
+            --bg: #f4f6f9; --card: #ffffff; --text: #333;
+            --red: #dc3545; --red-bg: #ffe6e6;
+            --orange: #fd7e14; --orange-bg: #fff5e6;
+            --blue: #0d6efd; --blue-bg: #e6f0ff;
+            --grey: #6c757d;
+        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); padding: 40px; max-width: 1400px; margin: 0 auto; }
+        
+        /* 仪表盘头部 */
+        .dashboard-header { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; }
+        .kpi-card { background: var(--card); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid #ccc; }
+        .kpi-card h3 { margin: 0; font-size: 1rem; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        .kpi-card .number { font-size: 3.5rem; font-weight: bold; margin: 10px 0; }
+        .kpi-card .desc { font-size: 0.9rem; color: #888; }
+        
+        .kpi-critical { border-color: var(--red); }
+        .kpi-critical .number { color: var(--red); }
+        
+        .kpi-must { border-color: var(--orange); }
+        .kpi-must .number { color: var(--orange); }
+        
+        .kpi-orphan { border-color: var(--blue); }
+        .kpi-orphan .number { color: var(--blue); }
+
+        /* 说明区域 */
+        .glossary { background: #e9ecef; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid #333; }
+        .glossary h4 { margin-top: 0; }
+        
+        /* 表格区域 */
+        .section-title { font-size: 1.5rem; margin-bottom: 15px; border-left: 5px solid transparent; padding-left: 10px; display: flex; align-items: center; }
+        .title-critical { border-color: var(--red); color: var(--red); }
+        .title-must { border-color: var(--orange); color: var(--orange); }
+        .title-orphan { border-color: var(--blue); color: var(--blue); }
+        
+        table { width: 100%; background: var(--card); border-collapse: collapse; margin-bottom: 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+        th { background: #f8f9fa; padding: 15px; text-align: left; font-weight: 600; color: #555; border-bottom: 2px solid #eee; }
+        td { padding: 15px; border-bottom: 1px solid #eee; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        
+        .path { font-family: Consolas, monospace; color: #555; background: #f8f9fa; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+        .suggestion { font-weight: 600; color: #2a2a2a; background: #e8f5e9; padding: 4px 8px; border-radius: 4px; display: inline-block; border: 1px solid #c3e6cb; }
+        
+        .row-critical { background: rgba(220, 53, 69, 0.03); }
+    </style>
+</head>
+<body>
+    <h1>🛡️ Code Doctor 全景天眼报告</h1>
+    <p>扫描时间: 2025-12-20 03:03:25 | 根目录: D:\desktop\课程\实验2</p>
+
+    <div class="dashboard-header">
+        <div class="kpi-card kpi-critical">
+            <h3>致命阻断 (Critical)</h3>
+            <div class="number">66</div>
+            <div class="desc">导致编译失败、白屏、崩溃的严重错误</div>
+        </div>
+        <div class="kpi-card kpi-must">
+            <h3>必须修复 (Must Fix)</h3>
+            <div class="number">33</div>
+            <div class="desc">导致样式丢失、API 报错的逻辑错误</div>
+        </div>
+        <div class="kpi-card kpi-orphan">
+            <h3>孤岛文件 (Orphan)</h3>
+            <div class="number">13</div>
+            <div class="desc">定义了但从未被使用的废弃代码</div>
+        </div>
+    </div>
+
+    <div class="glossary">
+        <h4>🔍 术语解释 (什么是孤岛问题？)</h4>
+        <p><strong>孤岛文件 (Orphan File)</strong>：指的是那些静静地躺在你的文件夹里，但是没有任何其他文件 <code>import</code> 它们的文件。就像一座没有桥梁连接的孤岛。这通常意味着：1. 你写了组件忘了用；2. 这是被遗弃的旧代码；3. 入口文件名写错了导致没连上。</p>
+        <p><strong>断链引用 (Broken Link)</strong>：你试图 <code>import X from './X'</code>，但 <code>./X</code> 根本不存在。这是导致 React 白屏的最常见原因。</p>
+    </div>
+
+    <div class="section-title title-critical">🚨 致命阻断：会导致网站无法运行 (优先级最高)</div>
+    <table>
+        <thead><tr><th width="15%">问题类型</th><th width="30%">所在文件</th><th width="30%">错误详情</th><th>🚀 修正方案</th></tr></thead>
+        <tbody>
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\poll.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\poll.routes.ts</td>
+                    <td>无法解析引用: '../controllers/poll.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\message.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\message.routes.ts</td>
+                    <td>无法解析引用: '../controllers/message.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\review.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\review.routes.ts</td>
+                    <td>无法解析引用: '../controllers/review.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\new_routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\new_routes.ts</td>
+                    <td>无法解析引用: '../controllers/consultant.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\new_routes.ts</td>
+                    <td>无法解析引用: '../controllers/order.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\user.routes.ts</td>
+                    <td>无法解析引用: '../controllers/user.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\user.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>无法解析引用: './socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\timeline.routes.ts</td>
+                    <td>无法解析引用: '../controllers/timeline.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\timeline.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\upload.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\upload.routes.ts</td>
+                    <td>无法解析引用: '../middleware/upload.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\auth.routes.ts</td>
+                    <td>无法解析引用: '../controllers/user.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\auth.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\memo.routes.ts</td>
+                    <td>无法解析引用: '../controllers/memo.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\memo.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\social.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\social.routes.ts</td>
+                    <td>无法解析引用: '../controllers/social.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\booking.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\booking.routes.ts</td>
+                    <td>无法解析引用: '../controllers/booking.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\whiteboard.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\whiteboard.routes.ts</td>
+                    <td>无法解析引用: '../controllers/whiteboard.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\services\socket.service.ts</td>
+                    <td>无法解析引用: './webrtc.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\video.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\video.routes.ts</td>
+                    <td>无法解析引用: '../controllers/video.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\calendar.routes.ts</td>
+                    <td>无法解析引用: '../controllers/calendar.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\calendar.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\controllers\message.controller.ts</td>
+                    <td>无法解析引用: '../services/socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\controllers\booking.controller.ts</td>
+                    <td>无法解析引用: '../services/socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\follow.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\follow.routes.ts</td>
+                    <td>无法解析引用: '../controllers/follow.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\meeting.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\meeting.routes.ts</td>
+                    <td>无法解析引用: '../controllers/meeting.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/memo.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/calendar.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/timeline.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/user.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/upload.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/booking.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/video.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/whiteboard.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/poll.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/breakout.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/captions.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/social.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/follow.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/message.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/meeting.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './routes/admin.routes'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './services/socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>无法解析引用: './services/reminder.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\captions.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\captions.routes.ts</td>
+                    <td>无法解析引用: '../controllers/captions.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\controllers\social.controller.ts</td>
+                    <td>无法解析引用: '../services/socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\admin.routes.ts</td>
+                    <td>无法解析引用: '../controllers/admin.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\admin.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\admin.routes.ts</td>
+                    <td>无法解析引用: '../controllers/logs.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\breakout.routes.ts</td>
+                    <td>无法解析引用: '../middleware/auth.middleware'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\routes\breakout.routes.ts</td>
+                    <td>无法解析引用: '../controllers/breakout.controller'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\controllers\meeting.controller.ts</td>
+                    <td>无法解析引用: '../services/socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\controllers\captions.controller.ts</td>
+                    <td>无法解析引用: '../services/socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                
+                <tr class="row-critical">
+                    <td><strong>断链引用 (Broken Link)</strong></td>
+                    <td class="path">server\src\controllers\breakout.controller.ts</td>
+                    <td>无法解析引用: '../services/socket.service'</td>
+                    <td class="suggestion">检查文件路径拼写，或确认目标文件是否存在</td>
+                </tr>
+                </tbody>
+    </table>
+
+    <div class="section-title title-must">⚠️ 必须修复：功能与样式问题</div>
+    <table>
+        <thead><tr><th width="15%">问题类型</th><th width="30%">所在文件</th><th width="30%">错误详情</th><th>🛠️ 修正方案</th></tr></thead>
+        <tbody>
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>环境变量 SMTP_HOST 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>环境变量 SMTP_USER 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>环境变量 SMTP_HOST 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>环境变量 SMTP_PORT 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>环境变量 SMTP_USER 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>环境变量 SMTP_PASSWORD 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\reminder.service.ts</td>
+                    <td>环境变量 SMTP_USER 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 STORAGE_MODE 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 STORAGE_LOCAL_PATH 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 CLOUD_PROVIDER 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 CLOUD_ACCESS_KEY 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 CLOUD_ACCESS_SECRET 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 CLOUD_BUCKET 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 CLOUD_REGION 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\utils\fileStorage.ts</td>
+                    <td>环境变量 CLOUD_ENDPOINT 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>CSS变量丢失</strong></td>
+                    <td class="path">client\src\components\FloatingGlobalButton.tsx</td>
+                    <td>变量 --theme-hex 未定义</td>
+                    <td class="suggestion">在 themes.ts 或 CSS 中定义该变量</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>CSS变量丢失</strong></td>
+                    <td class="path">client\src\components\FloatingGlobalButton.tsx</td>
+                    <td>变量 --theme-hex 未定义</td>
+                    <td class="suggestion">在 themes.ts 或 CSS 中定义该变量</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>CSS变量丢失</strong></td>
+                    <td class="path">client\src\components\PersonalSpace.tsx</td>
+                    <td>变量 --theme-hex 未定义</td>
+                    <td class="suggestion">在 themes.ts 或 CSS 中定义该变量</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>CSS变量丢失</strong></td>
+                    <td class="path">client\src\components\PersonalSpace.tsx</td>
+                    <td>变量 --theme-hex 未定义</td>
+                    <td class="suggestion">在 themes.ts 或 CSS 中定义该变量</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>CSS变量丢失</strong></td>
+                    <td class="path">client\src\components\PersonalSpace.tsx</td>
+                    <td>变量 --theme-hex 未定义</td>
+                    <td class="suggestion">在 themes.ts 或 CSS 中定义该变量</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>CSS变量丢失</strong></td>
+                    <td class="path">client\src\components\PersonalSpace.tsx</td>
+                    <td>变量 --theme-hex 未定义</td>
+                    <td class="suggestion">在 themes.ts 或 CSS 中定义该变量</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\payment.service.ts</td>
+                    <td>环境变量 ALIPAY_APP_ID 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\payment.service.ts</td>
+                    <td>环境变量 ALIPAY_PRIVATE_KEY 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\payment.service.ts</td>
+                    <td>环境变量 ALIPAY_PUBLIC_KEY 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\payment.service.ts</td>
+                    <td>环境变量 WECHAT_APP_ID 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\payment.service.ts</td>
+                    <td>环境变量 WECHAT_MCH_ID 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\payment.service.ts</td>
+                    <td>环境变量 WECHAT_PUBLIC_KEY 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\services\payment.service.ts</td>
+                    <td>环境变量 WECHAT_PRIVATE_KEY 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>环境变量 CORS_ORIGIN 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\index.ts</td>
+                    <td>环境变量 CORS_ORIGIN 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\controllers\logs.controller.ts</td>
+                    <td>环境变量 LOG_DIR 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\controllers\logs.controller.ts</td>
+                    <td>环境变量 LOG_DIR 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>ENV缺失</strong></td>
+                    <td class="path">server\src\controllers\meeting.controller.ts</td>
+                    <td>环境变量 FRONTEND_URL 未在 .env 中定义</td>
+                    <td class="suggestion">在 .env 文件中添加 KEY=VALUE</td>
+                </tr>
+                </tbody>
+    </table>
+
+    <div class="section-title title-orphan">🏝️ 孤岛问题：未被引用的代码</div>
+    <table>
+        <thead><tr><th width="15%">问题类型</th><th width="30%">文件路径</th><th width="30%">状态描述</th><th>💡 建议</th></tr></thead>
+        <tbody>
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\WebARCanvas.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\ErrorBoundary.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\MeetingEnhancements.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\Layout.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\FloatingGlobalButton.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\RichTextEditor.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\hooks\useDebounce.ts</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\MeetingLayout.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\UserProfileModal.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\MemoStatCard.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\ProtectedRoute.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\UserCard.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                
+                <tr class="">
+                    <td><strong>孤岛文件 (Orphan)</strong></td>
+                    <td class="path">client\src\components\AdminProtectedRoute.tsx</td>
+                    <td>该文件存在，但从未被任何代码引用</td>
+                    <td class="suggestion">检查是否遗漏了 import，或者是废弃代码可删除</td>
+                </tr>
+                </tbody>
+    </table>
+
+</body>
+</html>
+        

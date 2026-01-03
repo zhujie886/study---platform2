@@ -1,0 +1,8 @@
+import { Request, Response } from 'express';
+export const followUser = async (req: Request, res: Response) => { res.json({ success: true }); };
+export const unfollowUser = async (req: Request, res: Response) => { res.json({ success: true }); };
+export const getFollowing = async (req: Request, res: Response) => { res.json([]); };
+export const getFollowers = async (req: Request, res: Response) => { res.json([]); };
+export const checkFollowStatus = async (req: Request, res: Response) => { res.json({ isFollowing: false }); };
+export const getUserStats = async (req: Request, res: Response) => { res.json({ following: 0, followers: 0 }); };
+export const searchUsers = async (req: Request, res: Response) => { res.json({ data: [] }); };

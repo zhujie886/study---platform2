@@ -1,0 +1,13 @@
+import express from 'express';
+import { authenticateToken } from '../middleware/auth.middleware';
+import { createWhiteboard, listWhiteboardsByRoom, addWhiteboardAction, listWhiteboardActions, clearWhiteboard } from '../controllers/whiteboard.controller';
+
+const router = express.Router();
+
+router.post('/', authenticateToken, createWhiteboard);
+router.get('/room/:roomId', authenticateToken, listWhiteboardsByRoom);
+router.post('/:id/actions', authenticateToken, addWhiteboardAction);
+router.get('/:id/actions', authenticateToken, listWhiteboardActions);
+router.post('/:id/clear', authenticateToken, clearWhiteboard);
+
+export default router;

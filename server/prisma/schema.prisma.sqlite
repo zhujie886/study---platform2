@@ -1,0 +1,484 @@
+// Prisma Schema for SQLite (本地开发版本)
+// 综合平台完整版：视频会议 + 社交 + 预约 + 备忘录
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== 用户系统 ====================
+
+// 用户表（扩展）
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  username      String         @unique
+  password      String
+  avatar        String?
+  bio           String?        // 个人简介
+  phone         String?        // 手机号
+  isVerified    Boolean        @default(false) // 实名认证状态
+  isConsultant  Boolean        @default(false) // 是否开通咨询服务
+  consultFee    Float?         @default(0)     // 咨询费用（元/小时）
+  specialties   String?        // JSON：专长领域
+  rating        Float?         @default(0)     // 评分
+  totalBookings Int            @default(0)     // 总预约次数
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  // 原有关系
+  memos         Memo[]
+  sharedMemos   SharedMemo[]
+  events        Calendar[]
+  timelines     Timeline[]
+  meetingRecords MeetingRecord[]
+  reminderTasks ReminderTask[]
+  
+  // 新增关系：社交
+  posts         Post[]                // 发布的动态
+  comments      Comment[]             // 评论
+  likes         Like[]                // 点赞
+  following     Follow[]      @relation("UserFollowing")  // 我关注的人
+  followers     Follow[]      @relation("UserFollowers")  // 关注我的人
+  sentMessages  Message[]     @relation("MessageSender")   // 发送的消息
+  receivedMessages Message[]  @relation("MessageReceiver") // 接收的消息
+  
+  // 新增关系：预约系统
+  availableSlots    AvailableSlot[]           // 可预约时段
+  sentBookings      Booking[]   @relation("BookingRequester")   // 我发起的预约
+  receivedBookings  Booking[]   @relation("BookingConsultant")  // 我收到的预约
+  bookingReviews    BookingReview[]                             // 评价
+  
+  // 新增关系：视频会议
+  hostedRooms       VideoRoom[] @relation("RoomHost")           // 主持的会议
+  roomParticipants  RoomParticipant[]                           // 参与的会议
+  whiteboardActions WhiteboardAction[]                          // 白板操作
+  pollResponses     PollResponse[]                              // 答题记录
+  
+  // 新增关系：支付
+  payments          Payment[]   @relation("PaymentPayer")       // 支付记录
+  earnings          Payment[]   @relation("PaymentPayee")       // 收款记录
+}
+
+// 关注关系表
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String   // 关注者ID
+  followingId String   // 被关注者ID
+  createdAt   DateTime @default(now())
+  
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+}
+
+// ==================== 社交平台 ====================
+
+// 动态表
+model Post {
+  id          String    @id @default(uuid())
+  userId      String
+  content     String    // 文字内容
+  images      String?   // JSON：图片URL数组
+  videoUrl    String?   // 视频URL
+  topics      String?   // JSON：话题标签数组
+  type        String    @default("status") // status | question
+  visibility  String    @default("public") // public/followers/private
+  viewCount   Int       @default(0)
+  shareCount  Int       @default(0)
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  likes       Like[]
+
+  @@index([type])
+}
+
+// 评论表
+model Comment {
+  id          String   @id @default(uuid())
+  postId      String
+  userId      String
+  content     String
+  replyToId   String?  // 回复哪条评论（支持嵌套）
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 点赞表
+model Like {
+  id          String   @id @default(uuid())
+  postId      String
+  userId      String
+  createdAt   DateTime @default(now())
+  
+  post        Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([postId, userId])
+}
+
+// 私信表
+model Message {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  content     String
+  imageUrl    String?
+  voiceUrl    String?
+  isRead      Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 预约系统 ====================
+
+// 可预约时段表
+model AvailableSlot {
+  id          String    @id @default(uuid())
+  userId      String    // 咨询师ID
+  date        DateTime  // 日期
+  startTime   String    // 开始时间 HH:mm
+  endTime     String    // 结束时间 HH:mm
+  isBooked    Boolean   @default(false)
+  price       Float     @default(0) // 该时段价格
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bookings    Booking[]
+}
+
+// 预约记录表
+model Booking {
+  id            String    @id @default(uuid())
+  slotId        String
+  requesterId   String    // 预约发起人
+  consultantId  String    // 被预约的咨询师
+  purpose       String    // 预约目的
+  duration      Int       // 预计时长（分钟）
+  amount        Float     // 支付金额
+  status        String    @default("pending") // pending/confirmed/cancelled/completed
+  
+  // 会议信息
+  roomId        String?   // 关联的视频会议房间ID
+  startedAt     DateTime?
+  completedAt   DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  slot          AvailableSlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  requester     User          @relation("BookingRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  consultant    User          @relation("BookingConsultant", fields: [consultantId], references: [id], onDelete: Cascade)
+  payment       Payment?
+  review        BookingReview?
+}
+
+// 预约评价表
+model BookingReview {
+  id          String   @id @default(uuid())
+  bookingId   String   @unique
+  userId      String   // 评价人
+  rating      Int      // 1-5星
+  content     String?  // 评价内容
+  
+  createdAt   DateTime @default(now())
+  
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 支付系统 ====================
+
+// 支付记录表
+model Payment {
+  id            String   @id @default(uuid())
+  bookingId     String   @unique
+  payerId       String   // 付款人
+  payeeId       String   // 收款人
+  amount        Float    // 金额
+  status        String   @default("pending") // pending/success/failed/refunded
+  paymentMethod String   @default("simulate") // simulate/alipay/wechat
+  transactionId String?  // 第三方交易号
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  payer         User     @relation("PaymentPayer", fields: [payerId], references: [id], onDelete: Cascade)
+  payee         User     @relation("PaymentPayee", fields: [payeeId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 视频会议系统 ====================
+
+// 会议房间表
+model VideoRoom {
+  id              String    @id @default(uuid())
+  hostId          String    // 主持人ID
+  roomNumber      String    @unique // 会议号
+  password        String?   // 会议密码
+  title           String
+  description     String?
+  
+  // 会议设置
+  maxParticipants Int       @default(100)
+  enableWaitingRoom Boolean @default(false)
+  enableRecording Boolean   @default(false)
+  enableWhiteboard Boolean  @default(true)
+  enableScreenShare Boolean @default(true)
+  
+  // 会议状态
+  status          String    @default("scheduled") // scheduled/active/ended
+  scheduledAt     DateTime?
+  startedAt       DateTime?
+  endedAt         DateTime?
+  recordingUrl    String?   // 录制文件URL
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  host            User      @relation("RoomHost", fields: [hostId], references: [id], onDelete: Cascade)
+  participants    RoomParticipant[]
+  whiteboards     Whiteboard[]
+  polls           Poll[]
+  chatMessages    ChatMessage[]
+  breakoutRooms   BreakoutRoom[]
+}
+
+// 会议参与者表
+model RoomParticipant {
+  id          String   @id @default(uuid())
+  roomId      String
+  userId      String
+  role        String   @default("participant") // host/co-host/participant
+  
+  // 权限状态
+  isMuted     Boolean  @default(false)
+  isVideoOff  Boolean  @default(false)
+  isHandRaised Boolean @default(false)
+  isScreenSharing Boolean @default(false)
+  
+  joinedAt    DateTime @default(now())
+  leftAt      DateTime?
+  
+  room        VideoRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([roomId, userId])
+}
+
+// 会议聊天记录表
+model ChatMessage {
+  id          String   @id @default(uuid())
+  roomId      String
+  userId      String
+  username    String   // 冗余存储，方便显示
+  content     String
+  isPrivate   Boolean  @default(false) // 是否私聊
+  targetUserId String? // 私聊目标用户
+  
+  createdAt   DateTime @default(now())
+  
+  room        VideoRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 白板系统 ====================
+
+// 白板表
+model Whiteboard {
+  id          String   @id @default(uuid())
+  roomId      String
+  pageNumber  Int      @default(1)
+  thumbnail   String?  // 缩略图
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  room        VideoRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  actions     WhiteboardAction[]
+}
+
+// 白板操作记录表
+model WhiteboardAction {
+  id            String   @id @default(uuid())
+  whiteboardId  String
+  userId        String
+  actionType    String   // draw/erase/insert/clear
+  actionData    String   // JSON：操作数据（坐标、颜色、形状等）
+  
+  createdAt     DateTime @default(now())
+  
+  whiteboard    Whiteboard @relation(fields: [whiteboardId], references: [id], onDelete: Cascade)
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 分组讨论 ====================
+
+// 分组讨论房间表
+model BreakoutRoom {
+  id          String   @id @default(uuid())
+  mainRoomId  String
+  roomName    String
+  members     String   // JSON：成员userId数组
+  
+  createdAt   DateTime @default(now())
+  endedAt     DateTime?
+  
+  mainRoom    VideoRoom @relation(fields: [mainRoomId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 课堂答题 ====================
+
+// 投票/答题表
+model Poll {
+  id          String   @id @default(uuid())
+  roomId      String
+  question    String
+  options     String   // JSON：选项数组
+  pollType    String   // single/multiple/judge
+  correctAnswer String? // JSON：正确答案（用于统计正确率）
+  
+  createdAt   DateTime @default(now())
+  endedAt     DateTime?
+  
+  room        VideoRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  responses   PollResponse[]
+}
+
+// 答题响应表
+model PollResponse {
+  id          String   @id @default(uuid())
+  pollId      String
+  userId      String
+  answer      String   // JSON：用户答案
+  isCorrect   Boolean? // 是否正确
+  
+  createdAt   DateTime @default(now())
+  
+  poll        Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([pollId, userId])
+}
+
+// ==================== 原有功能保留 ====================
+
+// 备忘录表
+model Memo {
+  id               String         @id @default(uuid())
+  userId           String
+  title            String
+  content          String
+  encryptedContent String?
+  encryptionSalt   String?
+  labels           String?
+  priority         Int            @default(0)
+  color            String?
+  status           String         @default("active")
+  isEncrypted      Boolean        @default(false)
+  isStarred        Boolean        @default(false)
+  isArchived       Boolean        @default(false)
+  reminderTime     DateTime?
+  locationReminder String?
+  attachments      String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedWith       SharedMemo[]
+}
+
+model SharedMemo {
+  id            String         @id @default(uuid())
+  memoId        String
+  sharedWithId  String
+  permission    String         @default("read")
+  createdAt     DateTime       @default(now())
+  memo          Memo           @relation(fields: [memoId], references: [id], onDelete: Cascade)
+  sharedWith    User           @relation(fields: [sharedWithId], references: [id], onDelete: Cascade)
+  
+  @@unique([memoId, sharedWithId])
+}
+
+model Calendar {
+  id            String         @id @default(uuid())
+  userId        String
+  eventTitle    String
+  description   String?
+  location      String?
+  startTime     DateTime
+  endTime       DateTime
+  isAllDay      Boolean        @default(false)
+  recurrence    String?
+  color         String?
+  reminders     String?
+  attendees     String?
+  timezone      String?        @default("Asia/Shanghai")
+  source        String?        @default("manual")
+  memoId        String?
+  status        String         @default("confirmed")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Timeline {
+  id                String         @id @default(uuid())
+  userId            String
+  date              DateTime
+  timeBlocks        String?
+  tasks             String?
+  utilizationRate   Float?         @default(0)
+  totalWorkTime     Int?           @default(0)
+  statistics        String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, date], name: "userId_date")
+}
+
+model MeetingRecord {
+  id            String         @id @default(uuid())
+  userId        String
+  title         String
+  content       String
+  meetingDate   DateTime
+  participants  String?
+  actionItems   String?
+  tags          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ReminderTask {
+  id            String         @id @default(uuid())
+  userId        String
+  title         String
+  description   String?
+  triggerTime   DateTime
+  status        String         @default("pending")
+  type          String
+  relatedId     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

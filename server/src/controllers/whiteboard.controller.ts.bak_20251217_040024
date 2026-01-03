@@ -1,0 +1,74 @@
+
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export const createWhiteboard = async (req: Request, res: Response) => {
+    const { roomId } = req.body;
+    try {
+        const whiteboard = await prisma.whiteboard.create({
+            data: { roomId, actions: '[]' } // Store as empty JSON array string
+        });
+        res.status(201).json({ ...whiteboard, actions: JSON.parse(whiteboard.actions) });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create whiteboard' });
+    }
+};
+
+export const listWhiteboardsByRoom = async (req: Request, res: Response) => {
+    const { roomId } = req.params;
+    try {
+        const whiteboards = await prisma.whiteboard.findMany({ where: { roomId } });
+        const processedWhiteboards = whiteboards.map(wb => ({
+            ...wb,
+            actions: JSON.parse(wb.actions)
+        }));
+        res.json(processedWhiteboards);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to list whiteboards' });
+    }
+};
+
+export const addWhiteboardAction = async (req: Request, res: Response) => {
+    const { whiteboardId } = req.params;
+    const { action } = req.body;
+    try {
+        const whiteboard = await prisma.whiteboard.findUnique({ where: { id: whiteboardId } });
+        if (!whiteboard) {
+            return res.status(404).json({ error: 'Whiteboard not found' });
+        }
+        const currentActions = JSON.parse(whiteboard.actions);
+        currentActions.push(action);
+        const updatedWhiteboard = await prisma.whiteboard.update({
+            where: { id: whiteboardId },
+            data: { actions: JSON.stringify(currentActions) }
+        });
+        res.json({ ...updatedWhiteboard, actions: JSON.parse(updatedWhiteboard.actions) });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to add action' });
+    }
+};
+
+export const listWhiteboardActions = async (req: Request, res: Response) => {
+    const { whiteboardId } = req.params;
+    try {
+        const whiteboard = await prisma.whiteboard.findUnique({ where: { id: whiteboardId } });
+        res.json(whiteboard ? JSON.parse(whiteboard.actions) : []);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to list actions' });
+    }
+};
+
+export const clearWhiteboard = async (req: Request, res: Response) => {
+    const { whiteboardId } = req.params;
+    try {
+        await prisma.whiteboard.update({
+            where: { id: whiteboardId },
+            data: { actions: '[]' }
+        });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to clear whiteboard' });
+    }
+};

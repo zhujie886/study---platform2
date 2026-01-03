@@ -1,0 +1,13 @@
+import express from 'express';
+import { authenticateToken } from '../middleware/auth.middleware';
+import { pushCaptionLine } from '../controllers/captions.controller';
+
+const router = express.Router();
+
+router.post('/room/:roomId', authenticateToken, pushCaptionLine);
+
+export default router;
+
+
+
+

@@ -1,0 +1,6 @@
+import { Request, Response } from 'express';
+
+export const createPoll = (req: Request, res: Response) => res.json({});
+export const listPollsByRoom = (req: Request, res: Response) => res.json([]);
+export const submitPollAnswer = (req: Request, res: Response) => res.json({});
+export const getPollResults = (req: Request, res: Response) => res.json({});

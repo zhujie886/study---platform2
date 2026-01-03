@@ -1,0 +1,72 @@
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
+const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined in the environment variables");
+}
+
+export const adminLogin = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (user.role !== 'ADMIN') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    res.json({ token });
+  } catch (error) {
+    res.status(500).json({ error: 'Login failed' });
+  }
+};
+
+export const getDashboardStats = async (req: Request, res: Response) => {
+  try {
+    const totalUsers = await prisma.user.count();
+    const totalOrders = await prisma.order.count();
+    const totalRevenue = await prisma.order.aggregate({
+      _sum: {
+        totalAmount: true,
+      },
+      where: {
+        status: 'COMPLETED',
+      },
+    });
+
+    res.json({
+      totalUsers,
+      totalOrders,
+      totalRevenue: totalRevenue._sum.totalAmount || 0,
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve dashboard stats' });
+  }
+};
+
+export const getAllUsers = (req: Request, res: Response) => res.json([]);
+
+export const deleteUser = (req: Request, res: Response) => res.json({});
+
+export const updateUser = (req: Request, res: Response) => res.json({});
+
+export const getAllMemos = (req: Request, res: Response) => res.json([]);
+
+export const getAllMeetings = (req: Request, res: Response) => res.json([]);
+
+export const getAllPosts = (req: Request, res: Response) => res.json([]);
+
+export const deletePost = (req: Request, res: Response) => res.json({});

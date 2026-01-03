@@ -1,0 +1,15 @@
+import express from 'express';
+import { authenticateToken } from '../middleware/auth.middleware';
+import { createRoom, getRoom, joinRoom, startRoom, endRoom, startRecording, stopRecording } from '../controllers/video.controller';
+
+const router = express.Router();
+
+router.post('/rooms', authenticateToken, createRoom);
+router.get('/rooms/:id', authenticateToken, getRoom);
+router.post('/rooms/:id/join', authenticateToken, joinRoom);
+router.post('/rooms/:id/start', authenticateToken, startRoom);
+router.post('/rooms/:id/end', authenticateToken, endRoom);
+router.post('/rooms/:id/record/start', authenticateToken, startRecording);
+router.post('/rooms/:id/record/stop', authenticateToken, stopRecording);
+
+export default router;

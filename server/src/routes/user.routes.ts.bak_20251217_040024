@@ -1,0 +1,14 @@
+import { Router } from 'express';
+import { register, login, getProfile } from '../controllers/user.controller';
+import { authenticateToken } from '../middleware/auth.middleware';
+
+const router = Router();
+
+// Auth
+router.post('/register', register);
+router.post('/login', login);
+
+// Profile (keep existing interaction; requires auth token)
+router.get('/profile', authenticateToken, getProfile);
+
+export default router;

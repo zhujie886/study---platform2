@@ -1,0 +1,190 @@
+import { Request, Response } from 'express';
+import prisma from '../utils/prisma';
+import { io } from '../index';
+import { encryptWithPassword, decryptWithPassword } from '../utils/encryption';
+
+// 辅助函数
+const sanitizeData = (data: any) => {
+    const sanitized: any = { ...data };
+    if (Array.isArray(data.labels)) {
+        sanitized.labels = JSON.stringify(data.labels);
+    }
+    if (Array.isArray(data.attachments)) {
+        sanitized.attachments = JSON.stringify(data.attachments);
+    }
+    if (typeof data.locationReminder === 'object') {
+        sanitized.locationReminder = JSON.stringify(data.locationReminder);
+    }
+    if (data.reminderTime === '' || data.reminderTime === null) {
+        sanitized.reminderTime = null;
+    } else if (data.reminderTime) {
+        sanitized.reminderTime = new Date(data.reminderTime);
+    }
+    sanitized.priority = Number(data.priority) || 0;
+    return sanitized;
+};
+
+const parseData = (memo: any) => {
+    if (!memo) return null;
+    const parsed = { ...memo };
+    try {
+        if (typeof memo.labels === 'string') parsed.labels = JSON.parse(memo.labels || '[]');
+        if (typeof memo.attachments === 'string') parsed.attachments = JSON.parse(memo.attachments || '[]');
+        if (typeof memo.locationReminder === 'string') parsed.locationReminder = JSON.parse(memo.locationReminder || 'null');
+    } catch {
+        parsed.labels = [];
+    }
+    return parsed;
+};
+
+// ================= 导出所有控制器函数 =================
+
+export const createMemo = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ error: '未授权' });
+
+    const cleanData = sanitizeData(req.body);
+    let finalContent = req.body.content || '';
+    let encryptedContent = null;
+    let encryptionSalt = null;
+
+    if (req.body.isEncrypted) {
+      if (!req.body.encryptionPassword) return res.status(400).json({ error: '需要设置加密密码' });
+      const encrypted = encryptWithPassword(finalContent, req.body.encryptionPassword);
+      encryptedContent = encrypted.encrypted;
+      encryptionSalt = encrypted.salt;
+      finalContent = '[ENCRYPTED]';
+    }
+
+    const memo = await prisma.memo.create({
+      data: {
+        userId,
+        title: req.body.title || '无标题',
+        content: finalContent,
+        labels: cleanData.labels,
+        priority: cleanData.priority,
+        color: req.body.color,
+        reminderTime: cleanData.reminderTime,
+        locationReminder: cleanData.locationReminder,
+        isEncrypted: Boolean(req.body.isEncrypted),
+        encryptedContent,
+        encryptionSalt,
+        attachments: cleanData.attachments
+      },
+      include: { user: { select: { id: true, username: true, avatar: true } } }
+    });
+
+    const formattedMemo = parseData(memo);
+    io.to(`user-${userId}`).emit('memo:created', formattedMemo);
+    res.status(201).json(formattedMemo);
+  } catch (error: any) {
+    console.error('Create memo error:', error);
+    res.status(500).json({ error: '创建失败' });
+  }
+};
+
+export const getMemos = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { status, priority, page = 1, limit = 50, q, labels } = req.query;
+    const where: any = {
+      OR: [ { userId }, { sharedWith: { some: { sharedWithId: userId } } } ]
+    };
+
+    if (status) where.status = status;
+    if (priority !== undefined) where.priority = Number(priority);
+    if (q) {
+        where.OR = [
+            ...(where.OR || []),
+            { title: { contains: String(q) } },
+            { content: { contains: String(q) } }
+        ];
+    }
+    if (labels) where.labels = { contains: String(labels) };
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const [memos, total] = await Promise.all([
+      prisma.memo.findMany({
+        where,
+        include: { user: { select: { id: true, username: true, avatar: true } } },
+        orderBy: { updatedAt: 'desc' },
+        skip,
+        take: Number(limit)
+      }),
+      prisma.memo.count({ where })
+    ]);
+
+    res.json({ memos: memos.map(parseData), total, page: Number(page) });
+  } catch (error) {
+    res.status(500).json({ error: '获取失败' });
+  }
+};
+
+export const getMemoById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const memo = await prisma.memo.findUnique({ where: { id } });
+        if (!memo) return res.status(404).json({ error: 'Memo not found' });
+        res.json(parseData(memo));
+    } catch (error) {
+        res.status(500).json({ error: '获取失败' });
+    }
+};
+
+export const updateMemo = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = req.userId;
+
+        const memoToUpdate = await prisma.memo.findUnique({ where: { id } });
+        if (!memoToUpdate || memoToUpdate.userId !== userId) {
+            return res.status(403).json({ error: '无权修改' });
+        }
+
+        const cleanData = sanitizeData(req.body);
+        delete cleanData.id;
+        delete cleanData.userId;
+        delete cleanData.createdAt;
+        delete cleanData.updatedAt;
+
+        const memo = await prisma.memo.update({
+            where: { id },
+            data: cleanData
+        });
+
+        const formattedMemo = parseData(memo);
+        io.to(`user-${userId}`).emit('memo:updated', formattedMemo);
+        res.json(formattedMemo);
+    } catch (error) {
+        res.status(500).json({ error: '更新失败' });
+    }
+};
+
+export const deleteMemo = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = req.userId;
+
+        const memoToDelete = await prisma.memo.findUnique({ where: { id } });
+        if (!memoToDelete || memoToDelete.userId !== userId) {
+            return res.status(403).json({ error: '无权删除' });
+        }
+
+        await prisma.memo.delete({ where: { id } });
+        io.to(`user-${userId}`).emit('memo:deleted', { id });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: '删除失败' });
+    }
+};
+
+export const searchMemos = getMemos; // 复用 getMemos
+
+export const shareMemo = async (req: Request, res: Response) => {
+    res.json({ message: "Share functionality not implemented yet" });
+};
+
+export const decryptMemo = async (req: Request, res: Response) => {
+    res.json({ message: "Decrypt functionality not implemented yet" });
+};

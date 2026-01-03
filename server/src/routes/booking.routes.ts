@@ -1,0 +1,44 @@
+import express from 'express';
+import { authenticateToken } from '../middleware/auth.middleware';
+import {
+	createSlot,
+	listMySlots,
+	listUserSlots,
+	updateSlot,
+	deleteSlot,
+	createBooking,
+	listMyBookings,
+	updateBookingStatus,
+	payForBooking,
+	attachRoom,
+	createReview,
+	getReviewsByUserId,
+	replyReview
+} from '../controllers/booking.controller';
+
+const router = express.Router();
+
+// 可预约时段
+router.post('/slots', authenticateToken, createSlot);
+router.get('/slots/my', authenticateToken, listMySlots);
+router.get('/slots/user/:userId', authenticateToken, listUserSlots);
+router.put('/slots/:id', authenticateToken, updateSlot);
+router.delete('/slots/:id', authenticateToken, deleteSlot);
+
+// 预约
+router.post('/bookings', authenticateToken, createBooking);
+router.get('/bookings/my', authenticateToken, listMyBookings);
+router.put('/bookings/:id/status', authenticateToken, updateBookingStatus);
+router.post('/bookings/:id/pay', authenticateToken, payForBooking);
+router.post('/bookings/:id/room', authenticateToken, attachRoom);
+
+// 评价
+router.post('/reviews', authenticateToken, createReview);                   // 创建评价
+router.get('/reviews/:userId', authenticateToken, getReviewsByUserId);      // 获取用户评价列表
+router.put('/reviews/:id/reply', authenticateToken, replyReview);           // 回复评价
+
+export default router;
+
+
+
+

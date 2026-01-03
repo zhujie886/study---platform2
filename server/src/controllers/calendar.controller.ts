@@ -1,0 +1,371 @@
+import { Request, Response } from 'express';
+import prisma from '../utils/prisma';
+import { io } from '../index';
+
+/**
+ * 创建日历事件
+ */
+export const createEvent = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const {
+      eventTitle,
+      description,
+      startTime,
+      endTime,
+      color,
+      location,
+      attendees = [],
+      isAllDay = false,
+      recurrence,
+      reminders = [15], // 默认提前15分钟提醒
+      timezone,
+      memoId
+    } = req.body;
+
+    if (!eventTitle || !startTime || !endTime) {
+      return res.status(400).json({ error: 'Event title, start time and end time are required' });
+    }
+
+    // 检查时间冲突
+    const conflicts = await checkTimeConflicts(userId, new Date(startTime), new Date(endTime));
+    if (conflicts.length > 0) {
+      return res.status(409).json({ 
+        error: 'Time conflict detected', 
+        conflicts 
+      });
+    }
+
+    const event = await prisma.calendar.create({
+      data: {
+        userId,
+        eventTitle,
+        description,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        color: color || '#3b82f6',
+        location,
+        attendees: JSON.stringify(attendees),
+        isAllDay,
+        recurrence,
+        reminders: JSON.stringify(reminders),
+        timezone: timezone || 'Asia/Shanghai',
+        memoId,
+        source: 'manual'
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // 创建提醒任务
+    for (const minutesBefore of reminders) {
+      const triggerTime = new Date(new Date(startTime).getTime() - minutesBefore * 60000);
+      
+      await prisma.reminderTask.create({
+        data: {
+          userId,
+          type: 'calendar',
+          relatedId: event.id,
+          triggerTime,
+          title: `会议提醒: ${eventTitle} 将在 ${minutesBefore} 分钟后开始`
+        }
+      });
+    }
+
+    // WebSocket通知
+    io.to(`user-${userId}`).emit('calendar:created', event);
+
+    res.status(201).json(event);
+  } catch (error) {
+    console.error('Create event error:', error);
+    res.status(500).json({ error: 'Failed to create event' });
+  }
+};
+
+/**
+ * 获取日历事件列表
+ */
+export const getEvents = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { startDate, endDate, source } = req.query;
+
+    const where: any = {
+      userId
+    };
+
+    if (startDate && endDate) {
+      where.AND = [
+        { startTime: { gte: new Date(startDate as string) } },
+        { endTime: { lte: new Date(endDate as string) } }
+      ];
+    }
+
+    if (source) {
+      where.source = source;
+    }
+
+    const events = await prisma.calendar.findMany({
+      where,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true
+          }
+        }
+      },
+      orderBy: { startTime: 'asc' }
+    });
+
+    res.json(events);
+  } catch (error) {
+    console.error('Get events error:', error);
+    res.status(500).json({ error: 'Failed to fetch events' });
+  }
+};
+
+/**
+ * 获取单个事件
+ */
+export const getEventById = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
+
+    const event = await prisma.calendar.findFirst({
+      where: {
+        id,
+        userId
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    res.json(event);
+  } catch (error) {
+    console.error('Get event error:', error);
+    res.status(500).json({ error: 'Failed to fetch event' });
+  }
+};
+
+/**
+ * 更新日历事件
+ */
+export const updateEvent = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const existing = await prisma.calendar.findFirst({
+      where: { id, userId }
+    });
+
+    if (!existing) {
+      return res.status(404).json({ error: 'Event not found or no permission' });
+    }
+
+    // 如果更新了时间，检查冲突
+    if (updateData.startTime || updateData.endTime) {
+      const startTime = updateData.startTime ? new Date(updateData.startTime) : existing.startTime;
+      const endTime = updateData.endTime ? new Date(updateData.endTime) : existing.endTime;
+      
+      const conflicts = await checkTimeConflicts(userId, startTime, endTime, id);
+      if (conflicts.length > 0) {
+        return res.status(409).json({ 
+          error: 'Time conflict detected', 
+          conflicts 
+        });
+      }
+
+      if (updateData.startTime) updateData.startTime = startTime;
+      if (updateData.endTime) updateData.endTime = endTime;
+    }
+
+    // 处理数组字段
+    if (updateData.attendees) {
+      updateData.attendees = JSON.stringify(updateData.attendees);
+    }
+    if (updateData.reminders) {
+      updateData.reminders = JSON.stringify(updateData.reminders);
+    }
+
+    const event = await prisma.calendar.update({
+      where: { id },
+      data: updateData,
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    io.to(`user-${userId}`).emit('calendar:updated', event);
+
+    res.json(event);
+  } catch (error) {
+    console.error('Update event error:', error);
+    res.status(500).json({ error: 'Failed to update event' });
+  }
+};
+
+/**
+ * 删除日历事件
+ */
+export const deleteEvent = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { id } = req.params;
+
+    const event = await prisma.calendar.findFirst({
+      where: { id, userId }
+    });
+
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found or no permission' });
+    }
+
+    await prisma.calendar.delete({ where: { id } });
+
+    // 删除相关提醒
+    await prisma.reminderTask.deleteMany({
+      where: { relatedId: id, type: 'calendar' }
+    });
+
+    io.to(`user-${userId}`).emit('calendar:deleted', { id });
+
+    res.json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    console.error('Delete event error:', error);
+    res.status(500).json({ error: 'Failed to delete event' });
+  }
+};
+
+/**
+ * 检查时间冲突
+ */
+export const checkConflicts = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { startTime, endTime, excludeId } = req.query;
+
+    if (!startTime || !endTime) {
+      return res.status(400).json({ error: 'Start time and end time are required' });
+    }
+
+    const conflicts = await checkTimeConflicts(
+      userId,
+      new Date(startTime as string),
+      new Date(endTime as string),
+      excludeId as string
+    );
+
+    res.json({ hasConflicts: conflicts.length > 0, conflicts });
+  } catch (error) {
+    console.error('Check conflicts error:', error);
+    res.status(500).json({ error: 'Failed to check conflicts' });
+  }
+};
+
+/**
+ * 与预约系统同步
+ */
+export const syncWithAppointment = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const {
+      appointmentId,
+      eventTitle,
+      startTime,
+      endTime,
+      attendees,
+      description
+    } = req.body;
+
+    const event = await prisma.calendar.create({
+      data: {
+        userId,
+        eventTitle,
+        description,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        attendees: JSON.stringify(attendees || []),
+        source: 'appointment',
+        memoId: appointmentId,
+        color: '#10b981',
+        reminders: JSON.stringify([15, 30])
+      }
+    });
+
+    res.status(201).json(event);
+  } catch (error) {
+    console.error('Sync appointment error:', error);
+    res.status(500).json({ error: 'Failed to sync appointment' });
+  }
+};
+
+/**
+ * 辅助函数：检查时间冲突
+ */
+async function checkTimeConflicts(
+  userId: string,
+  startTime: Date,
+  endTime: Date,
+  excludeId?: string
+): Promise<any[]> {
+  const where: any = {
+    userId,
+    OR: [
+      {
+        AND: [
+          { startTime: { lte: startTime } },
+          { endTime: { gt: startTime } }
+        ]
+      },
+      {
+        AND: [
+          { startTime: { lt: endTime } },
+          { endTime: { gte: endTime } }
+        ]
+      },
+      {
+        AND: [
+          { startTime: { gte: startTime } },
+          { endTime: { lte: endTime } }
+        ]
+      }
+    ]
+  };
+
+  if (excludeId) {
+    where.id = { not: excludeId };
+  }
+
+  return await prisma.calendar.findMany({ where });
+}
+
+

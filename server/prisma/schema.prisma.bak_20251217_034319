@@ -1,0 +1,328 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ==================== 核心用户模型 ====================
+model User {
+  id                 String    @id @default(uuid())
+  email              String    @unique
+  username           String
+  password           String
+  avatar             String?
+  bio                String?
+  role               String    @default("user") // user, admin, consultant
+  isVerified         Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // 社交关系
+  followers          Follow[]  @relation("following")
+  following          Follow[]  @relation("follower")
+  posts              Post[]
+  comments           Comment[]
+  likes              Like[]
+
+  // 功能模块
+  memos              Memo[]
+  sharedMemos        SharedMemo[]
+  calendars          Calendar[]
+  reminderTasks      ReminderTask[]
+  timelines          Timeline[]
+
+  // 会议
+  hostedMeetings     Meeting[] @relation("host")
+  participatedMeetings MeetingParticipant[]
+  sentInvitations    MeetingInvitation[] @relation("inviter")
+  receivedInvitations MeetingInvitation[] @relation("invitee")
+
+  // 预约
+  ordersAsUser       Order[]   @relation("user")
+  ordersAsPlaymate   Order[]   @relation("playmate")
+  reviewsGiven       Review[]  @relation("reviewer")
+  reviewsReceived    Review[]  @relation("reviewee")
+
+  // 咨询
+  consultantProfile  ConsultantProfile?
+}
+
+// ==================== 咨询与预约 ====================
+model ConsultantProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  title          String
+  tags           String?  // JSON array of strings
+  rate           Float
+  availability   String?  // JSON for schedule
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Order {
+  id          String   @id @default(uuid())
+  userId      String
+  playmateId  String
+  amount      Float    // ★★★★★ 必填字段 ★★★★★
+  totalAmount Float?   // ★★★★★ 兼容字段 ★★★★★
+  status      String   // PENDING, COMPLETED, CANCELLED
+  startTime   DateTime
+  duration    Int      // in minutes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation("user", fields: [userId], references: [id], onDelete: Cascade)
+  playmate    User     @relation("playmate", fields: [playmateId], references: [id], onDelete: Cascade)
+  review      Review?
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  orderId     String   @unique
+  reviewerId  String
+  revieweeId  String
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  order       Order    @relation(fields: [orderId], references: [id])
+  reviewer    User     @relation("reviewer", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee    User     @relation("reviewee", fields: [revieweeId], references: [id], onDelete: Cascade)
+}
+
+
+// ==================== 社交功能 ====================
+model Follow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+}
+
+model Post {
+  id        String    @id @default(uuid())
+  userId    String
+  content   String
+  imageUrl  String?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+}
+
+
+// ==================== 备忘录 ====================
+model Memo {
+  id                 String    @id @default(uuid())
+  userId             String
+  title              String
+  content            String?
+  color              String?   // 颜色
+  priority           Int?      @default(0) // 优先级
+  labels             String?   // 标签 (JSON 字符串)
+  attachments        String?   // 附件 (JSON 字符串)
+  reminderTime       DateTime? // 提醒时间
+  locationReminder   String?   // 地理位置提醒 (JSON 字符串)
+  isEncrypted        Boolean?  @default(false)
+  encryptedContent   String?
+  encryptionSalt     String?
+  status             String?   @default("active") // 状态: active, archived, deleted
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedWith         SharedMemo[]
+}
+
+model SharedMemo {
+  id           String   @id @default(uuid())
+  memoId       String
+  sharedWithId String
+  permission   String   @default("read") // read, write
+  createdAt    DateTime @default(now())
+
+  memo         Memo     @relation(fields: [memoId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [sharedWithId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 日历与提醒 ====================
+model Calendar {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  startTime   DateTime
+  endTime     DateTime?
+  isAllDay    Boolean  @default(false)
+  type        String   @default("event") // event, task, reminder
+  location    String?
+  
+  color       String?
+  attendees   String?  // JSON
+  recurrence  String?
+  reminders   String?  // JSON
+  timezone    String?
+  memoId      String?
+  source      String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ReminderTask {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   // memo, calendar, etc.
+  relatedId   String?
+  title       String
+  description String?
+  triggerTime DateTime
+  status      String   @default("pending") // pending, sent, failed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Timeline {
+  id              String   @id @default(uuid())
+  userId          String
+  date            DateTime
+  
+  timeBlocks      String?  // JSON
+  tasks           String?  // JSON
+  statistics      String?  // JSON
+  totalWorkTime   Int?     @default(0)
+  utilizationRate Float?   @default(0)
+  
+  title           String?
+  description     String?
+  startTime       DateTime?
+  endTime         DateTime?
+  category        String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date], name: "userId_date")
+}
+
+// ==================== 会议系统 ====================
+model Meeting {
+  id          String    @id @default(uuid())
+  title       String
+  hostId      String
+  startTime   DateTime
+  endTime     DateTime?
+  status      String    @default("scheduled") // scheduled, active, ended
+  createdAt   DateTime  @default(now())
+
+  host          User      @relation("host", fields: [hostId], references: [id])
+  participants  MeetingParticipant[]
+  invitations   MeetingInvitation[]
+}
+
+model MeetingParticipant {
+  id          String   @id @default(uuid())
+  meetingId   String
+  userId      String
+  joinedAt    DateTime @default(now())
+
+  meeting     Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, userId])
+}
+
+model MeetingInvitation {
+  id          String   @id @default(uuid())
+  meetingId   String
+  inviterId   String
+  inviteeId   String
+  status      String   @default("pending") // pending, accepted, declined
+  createdAt   DateTime @default(now())
+
+  meeting     Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  inviter     User     @relation("inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  invitee     User     @relation("invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+}
+
+// ==================== 消息 ====================
+model Message {
+  id          String   @id @default(uuid())
+  senderId    String
+  receiverId  String
+  content     String
+  createdAt   DateTime @default(now())
+}
+
+// ==================== 其他辅助模型 ====================
+model Whiteboard {
+  id        String   @id @default(uuid())
+  roomId    String
+  data      String   // JSON content
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Poll {
+  id        String   @id @default(uuid())
+  question  String
+  options   String   // JSON
+  createdAt DateTime @default(now())
+}
+
+model BreakoutRoom {
+  id        String   @id @default(uuid())
+  meetingId String
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model Caption {
+  id        String   @id @default(uuid())
+  meetingId String
+  content   String
+  speaker   String
+  timestamp DateTime @default(now())
+}

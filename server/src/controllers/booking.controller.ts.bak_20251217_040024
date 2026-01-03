@@ -1,0 +1,124 @@
+import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export const createBooking = async (req: Request, res: Response) => {
+  const { playmateId, startTime, duration, totalAmount } = req.body;
+  const userId = (req as any).user.id; // Assuming userId is available from auth middleware
+
+  try {
+    // Optional: Check for conflicting orders
+    const existingOrder = await prisma.order.findFirst({
+      where: {
+        playmateId,
+        startTime: {
+          lt: new Date(new Date(startTime).getTime() + duration * 60000),
+        },
+        AND: {
+          startTime: {
+            gt: new Date(new Date(startTime).getTime() - duration * 60000),
+          },
+        },
+      },
+    });
+
+    if (existingOrder) {
+      return res.status(409).json({ error: 'Time slot not available' });
+    }
+
+    const order = await prisma.order.create({
+      data: {
+        user: { connect: { id: userId } },
+        playmate: { connect: { id: playmateId } },
+        startTime: new Date(startTime),
+        duration,
+        amount: totalAmount,
+        totalAmount,
+        status: 'PENDING',
+      },
+    });
+    res.status(201).json(order);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create order' });
+  }
+};
+
+export const listMyBookings = async (req: Request, res: Response) => {
+  const userId = (req as any).user.id;
+
+  try {
+    const orders = await prisma.order.findMany({
+      where: { userId },
+      include: {
+        playmate: {
+          select: {
+            id: true,
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to retrieve orders' });
+  }
+};
+
+export const createSlot = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'createSlot not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const listMySlots = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'listMySlots not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const listUserSlots = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'listUserSlots not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const updateSlot = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'updateSlot not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const deleteSlot = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'deleteSlot not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const updateBookingStatus = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'updateBookingStatus not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const payForBooking = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'payForBooking not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const attachRoom = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'attachRoom not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const createReview = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'createReview not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const getReviewsByUserId = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'getReviewsByUserId not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};
+
+export const replyReview = async (req: Request, res: Response) => { 
+  try { res.json({ message: 'replyReview not implemented' }); }
+  catch (e: any) { res.status(500).json({ error: e.message }); } 
+};

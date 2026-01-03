@@ -1,0 +1,151 @@
+import { Request, Response } from 'express';
+import prisma from '../utils/prisma';
+
+// 辅助函数：获取用户ID
+function getAuthUserId(req: Request): string | null {
+	return req.userId || null;
+}
+
+// 创建房间
+export const createRoom = async (req: Request, res: Response) => {
+	try {
+		const userId = getAuthUserId(req);
+		if (!userId) return res.status(401).json({ error: '未授权' });
+
+        const { title, description, password } = req.body;
+
+        const room = await prisma.videoRoom.create({
+			data: {
+				hostId: userId,
+				roomNumber: `${Date.now()}`,
+				title: title || '临时会议',
+				description: description || null,
+				password: password || null,
+				status: 'scheduled'
+			}
+		});
+		return res.json(room);
+	} catch (err: any) {
+		return res.status(500).json({ error: err.message });
+	}
+};
+
+// 获取房间详情
+export const getRoom = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const room = await prisma.videoRoom.findUnique({
+			where: { id },
+			include: { participants: true }
+		});
+		if (!room) return res.status(404).json({ error: '房间不存在' });
+		return res.json(room);
+	} catch (err: any) {
+		return res.status(500).json({ error: err.message });
+	}
+};
+
+// 加入房间
+export const joinRoom = async (req: Request, res: Response) => {
+	try {
+		const userId = getAuthUserId(req);
+		if (!userId) return res.status(401).json({ error: '未授权' });
+
+        const { id } = req.params; // roomId
+
+        const room = await prisma.videoRoom.findUnique({ where: { id } });
+		if (!room) return res.status(404).json({ error: '房间不存在' });
+
+        const participant = await prisma.roomParticipant.upsert({
+			where: { roomId_userId: { roomId: id, userId } },
+			update: { leftAt: null },
+			create: { roomId: id, userId, role: 'participant' }
+		});
+		return res.json(participant);
+	} catch (err: any) {
+		return res.status(500).json({ error: err.message });
+	}
+};
+
+// 开始会议
+export const startRoom = async (req: Request, res: Response) => {
+	try {
+		const userId = getAuthUserId(req);
+		if (!userId) return res.status(401).json({ error: '未授权' });
+
+        const { id } = req.params;
+		const room = await prisma.videoRoom.findUnique({ where: { id } });
+
+        if (!room) return res.status(404).json({ error: '房间不存在' });
+		if (room.hostId !== userId) return res.status(403).json({ error: '只有主持人可以开始会议' });
+
+        const updated = await prisma.videoRoom.update({ where: { id }, data: { status: 'active', startedAt: new Date() } });
+		return res.json(updated);
+	} catch (err: any) {
+		return res.status(500).json({ error: err.message });
+	}
+};
+
+// 结束会议
+export const endRoom = async (req: Request, res: Response) => {
+	try {
+		const userId = getAuthUserId(req);
+		if (!userId) return res.status(401).json({ error: '未授权' });
+
+        const { id } = req.params;
+		const room = await prisma.videoRoom.findUnique({ where: { id } });
+
+        if (!room) return res.status(404).json({ error: '房间不存在' });
+		if (room.hostId !== userId) return res.status(403).json({ error: '只有主持人可以结束会议' });
+
+        const updated = await prisma.videoRoom.update({ where: { id }, data: { status: 'ended', endedAt: new Date() } });
+		return res.json(updated);
+	} catch (err: any) {
+		return res.status(500).json({ error: err.message });
+	}
+};
+
+// 开始录制
+export const startRecording = async (req: Request, res: Response) => {
+	try {
+		const userId = getAuthUserId(req);
+		if (!userId) return res.status(401).json({ error: '未授权' });
+
+        const { id } = req.params;
+		const room = await prisma.videoRoom.findUnique({ where: { id } });
+
+        if (!room) return res.status(404).json({ error: '房间不存在' });
+		if (room.hostId !== userId) return res.status(403).json({ error: '只有主持人可以开启录制' });
+
+        const updated = await prisma.videoRoom.update({ where: { id }, data: { enableRecording: true } });
+		return res.json(updated);
+	} catch (err: any) {
+		return res.status(500).json({ error: err.message });
+	}
+};
+
+// 停止录制
+export const stopRecording = async (req: Request, res: Response) => {
+	try {
+		const userId = getAuthUserId(req);
+		if (!userId) return res.status(401).json({ error: '未授权' });
+
+        const { id } = req.params;
+		const { recordingUrl } = req.body as { recordingUrl?: string };
+		const room = await prisma.videoRoom.findUnique({ where: { id } });
+
+        if (!room) return res.status(404).json({ error: '房间不存在' });
+		if (room.hostId !== userId) return res.status(403).json({ error: '只有主持人可以结束录制' });
+
+        const updated = await prisma.videoRoom.update({ 
+            where: { id }, 
+            data: { 
+                enableRecording: false, 
+                recordingUrl: recordingUrl || room.recordingUrl 
+            } 
+        });
+		return res.json(updated);
+	} catch (err: any) {
+		return res.status(500).json({ error: err.message });
+	}
+};

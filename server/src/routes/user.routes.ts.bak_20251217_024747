@@ -1,0 +1,16 @@
+import express from 'express';
+import { register, login, getProfile, updateProfile, getUserById } from '../controllers/user.controller';
+import { authenticateToken } from '../middleware/auth.middleware';
+
+const router = express.Router();
+
+// 认证路由
+router.post('/register', register);
+router.post('/login', login);
+
+// 用户信息路由（需要认证）
+router.get('/profile', authenticateToken, getProfile);
+router.put('/profile', authenticateToken, updateProfile);
+router.get('/:userId', authenticateToken, getUserById);  // 获取指定用户信息
+
+export default router;

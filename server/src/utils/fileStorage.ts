@@ -1,0 +1,324 @@
+/**
+ * 文件存储服务
+ * 支持本地存储和云存储（阿里云OSS/腾讯云COS）
+ */
+
+import fs from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
+
+// 文件存储配置
+export interface StorageConfig {
+  mode: 'local' | 'cloud';
+  localPath?: string;
+  cloudProvider?: 'aliyun' | 'tencent' | 's3';
+  cloudConfig?: any;
+}
+
+const config: StorageConfig = {
+  mode: process.env.STORAGE_MODE as any || 'local',
+  localPath: process.env.STORAGE_LOCAL_PATH || './uploads',
+  cloudProvider: process.env.CLOUD_PROVIDER as any,
+  cloudConfig: {
+    // 云存储配置（生产环境填写）
+    accessKeyId: process.env.CLOUD_ACCESS_KEY,
+    accessKeySecret: process.env.CLOUD_ACCESS_SECRET,
+    bucket: process.env.CLOUD_BUCKET,
+    region: process.env.CLOUD_REGION || 'cn-hangzhou',
+    endpoint: process.env.CLOUD_ENDPOINT
+  }
+};
+
+// 确保上传目录存在
+function ensureUploadDir(category: string) {
+  const uploadPath = path.join(config.localPath!, category);
+  if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+  }
+  return uploadPath;
+}
+
+/**
+ * 保存文件
+ * @param file 文件Buffer或路径
+ * @param category 文件分类：avatar/post/video/document/recording等
+ * @param filename 原始文件名
+ */
+export async function saveFile(
+  file: Buffer | string,
+  category: string,
+  filename: string
+): Promise<{url: string; size: number; hash: string}> {
+  
+  const ext = path.extname(filename);
+  const uniqueName = `${uuidv4()}${ext}`;
+  
+  // 计算文件哈希（用于去重）
+  const fileBuffer = typeof file === 'string' ? fs.readFileSync(file) : file;
+  const hash = crypto.createHash('md5').update(fileBuffer).digest('hex');
+  
+  if (config.mode === 'local') {
+    // 本地存储
+    const uploadPath = ensureUploadDir(category);
+    const filePath = path.join(uploadPath, uniqueName);
+    
+    if (typeof file === 'string') {
+      fs.copyFileSync(file, filePath);
+    } else {
+      fs.writeFileSync(filePath, file);
+    }
+    
+    const url = `/uploads/${category}/${uniqueName}`;
+    return { url, size: fileBuffer.length, hash };
+    
+  } else {
+    // 云存储（预留接口）
+    return uploadToCloud(fileBuffer, category, uniqueName, hash);
+  }
+}
+
+/**
+ * 删除文件
+ */
+export async function deleteFile(url: string): Promise<boolean> {
+  if (config.mode === 'local') {
+    const filePath = path.join(process.cwd(), url);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return true;
+    }
+    return false;
+  } else {
+    return deleteFromCloud(url);
+  }
+}
+
+/**
+ * 获取文件URL（云存储可能需要签名）
+ */
+export async function getFileUrl(
+  storedUrl: string,
+  expiresIn?: number
+): Promise<string> {
+  if (config.mode === 'local') {
+    return storedUrl;
+  } else {
+    // 云存储返回签名URL
+    return getSignedCloudUrl(storedUrl, expiresIn);
+  }
+}
+
+/**
+ * 批量保存文件
+ */
+export async function saveFiles(
+  files: Array<{buffer: Buffer; filename: string}>,
+  category: string
+): Promise<Array<{url: string; size: number; hash: string}>> {
+  return Promise.all(
+    files.map(f => saveFile(f.buffer, category, f.filename))
+  );
+}
+
+// ==================== 云存储实现（预留） ====================
+
+async function uploadToCloud(
+  buffer: Buffer,
+  category: string,
+  filename: string,
+  hash: string
+): Promise<{url: string; size: number; hash: string}> {
+  
+  const objectKey = `${category}/${filename}`;
+  
+  switch (config.cloudProvider) {
+    case 'aliyun':
+      return uploadToAliyunOSS(buffer, objectKey, hash);
+    case 'tencent':
+      return uploadToTencentCOS(buffer, objectKey, hash);
+    case 's3':
+      return uploadToS3(buffer, objectKey, hash);
+    default:
+      throw new Error('Cloud provider not configured');
+  }
+}
+
+async function uploadToAliyunOSS(
+  buffer: Buffer,
+  objectKey: string,
+  hash: string
+): Promise<{url: string; size: number; hash: string}> {
+  // TODO: 集成阿里云OSS SDK
+  // const OSS = require('ali-oss');
+  // const client = new OSS(config.cloudConfig);
+  // const result = await client.put(objectKey, buffer);
+  
+  console.log('阿里云OSS上传（待实现）:', objectKey);
+  return {
+    url: `https://${config.cloudConfig.bucket}.oss-${config.cloudConfig.region}.aliyuncs.com/${objectKey}`,
+    size: buffer.length,
+    hash
+  };
+}
+
+async function uploadToTencentCOS(
+  buffer: Buffer,
+  objectKey: string,
+  hash: string
+): Promise<{url: string; size: number; hash: string}> {
+  // TODO: 集成腾讯云COS SDK
+  // const COS = require('cos-nodejs-sdk-v5');
+  // const cos = new COS(config.cloudConfig);
+  // const result = await cos.putObject({...});
+  
+  console.log('腾讯云COS上传（待实现）:', objectKey);
+  return {
+    url: `https://${config.cloudConfig.bucket}.cos.${config.cloudConfig.region}.myqcloud.com/${objectKey}`,
+    size: buffer.length,
+    hash
+  };
+}
+
+async function uploadToS3(
+  buffer: Buffer,
+  objectKey: string,
+  hash: string
+): Promise<{url: string; size: number; hash: string}> {
+  // TODO: 集成AWS S3 SDK
+  // const AWS = require('aws-sdk');
+  // const s3 = new AWS.S3(config.cloudConfig);
+  // const result = await s3.putObject({...}).promise();
+  
+  console.log('AWS S3上传（待实现）:', objectKey);
+  return {
+    url: `https://${config.cloudConfig.bucket}.s3.${config.cloudConfig.region}.amazonaws.com/${objectKey}`,
+    size: buffer.length,
+    hash
+  };
+}
+
+async function deleteFromCloud(url: string): Promise<boolean> {
+  // TODO: 实现云存储删除
+  console.log('云存储删除（待实现）:', url);
+  return true;
+}
+
+async function getSignedCloudUrl(url: string, expiresIn: number = 3600): Promise<string> {
+  // TODO: 实现云存储签名URL生成
+  console.log('生成签名URL（待实现）:', url);
+  return url;
+}
+
+// ==================== 文件验证工具 ====================
+
+/**
+ * 验证文件类型
+ */
+export function validateFileType(
+  filename: string,
+  allowedTypes: string[]
+): boolean {
+  const ext = path.extname(filename).toLowerCase();
+  return allowedTypes.some(type => {
+    if (type.startsWith('.')) {
+      return ext === type;
+    }
+    return ext === `.${type}`;
+  });
+}
+
+/**
+ * 验证文件大小
+ */
+export function validateFileSize(
+  size: number,
+  maxSizeMB: number
+): boolean {
+  return size <= maxSizeMB * 1024 * 1024;
+}
+
+/**
+ * 获取文件MIME类型
+ */
+export function getMimeType(filename: string): string {
+  const ext = path.extname(filename).toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.png': 'image/png',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.mp3': 'audio/mpeg',
+    '.wav': 'audio/wav',
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.ppt': 'application/vnd.ms-powerpoint',
+    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  };
+  return mimeTypes[ext] || 'application/octet-stream';
+}
+
+// ==================== 图片处理工具 ====================
+
+/**
+ * 压缩图片（需要安装 sharp 库）
+ */
+export async function compressImage(
+  buffer: Buffer,
+  maxWidth: number = 1920,
+  quality: number = 80
+): Promise<Buffer> {
+  try {
+    // const sharp = require('sharp');
+    // return await sharp(buffer)
+    //   .resize(maxWidth, null, { fit: 'inside', withoutEnlargement: true })
+    //   .jpeg({ quality })
+    //   .toBuffer();
+    
+    // 暂不压缩，直接返回原图
+    console.log('图片压缩（待实现）');
+    return buffer;
+  } catch (error) {
+    console.error('图片压缩失败:', error);
+    return buffer;
+  }
+}
+
+/**
+ * 生成缩略图
+ */
+export async function generateThumbnail(
+  buffer: Buffer,
+  width: number = 200,
+  height: number = 200
+): Promise<Buffer> {
+  try {
+    // const sharp = require('sharp');
+    // return await sharp(buffer)
+    //   .resize(width, height, { fit: 'cover' })
+    //   .jpeg({ quality: 70 })
+    //   .toBuffer();
+    
+    // 暂不生成，直接返回原图
+    console.log('缩略图生成（待实现）');
+    return buffer;
+  } catch (error) {
+    console.error('缩略图生成失败:', error);
+    return buffer;
+  }
+}
+
+// 初始化：确保本地上传目录存在
+if (config.mode === 'local') {
+  const categories = ['avatar', 'post', 'video', 'document', 'recording', 'whiteboard', 'attachment'];
+  categories.forEach(cat => ensureUploadDir(cat));
+  console.log('📁 本地文件存储已初始化:', config.localPath);
+}
+
+

@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 动态主题变量（新版）：ThemeProvider 会在 html 上写入 CSS 变量 */
+html, body {
+  height: 100%;
+}
+body {
+  background: var(--background-main, #f8fafc);
+  color: var(--text-main, #0f172a);
+  transition: background-color 0.5s ease, color 0.5s ease;
+  overflow-x: hidden;
+}
+
+/* 简约/华丽模式：由 html[data-style-mode] 控制 */
+html[data-style-mode='simple'] body {
+  background: var(--background-main, #f8fafc);
+  color: var(--text-main, #0f172a);
+}
+
+html[data-style-mode='fancy'] body {
+  background: var(--background-main, #0f172a);
+  color: var(--text-main, #ffffff);
+}
+
+/* 玻璃拟态卡片：在部分页面中使用（MemoDashboard/注册等） */
+.glass-card {
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+html[data-style-mode='simple'] .glass-card {
+  background: var(--panel-bg, rgba(255, 255, 255, 0.9));
+  border: 1px solid var(--panel-border, rgba(17,24,39,0.08));
+  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+}
+
+html[data-style-mode='fancy'] .glass-card {
+  background: var(--panel-bg, rgba(255,255,255,0.14));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--panel-border, rgba(255,255,255,0.18));
+  box-shadow: 0 18px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.06) inset;
+}
+
+/* 让全站常见卡片类在华丽模式下自动适配主题（备忘录/日历等页面会受益） */
+html[data-style-mode='fancy'] .card,
+html[data-style-mode='fancy'] .bg-white {
+  background-color: var(--panel-bg, rgba(30, 41, 59, 0.6)) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--panel-border, rgba(255, 255, 255, 0.1)) !important;
+  color: var(--text-main, #ffffff) !important;
+  box-shadow: 0 18px 55px rgba(0,0,0,0.22) !important;
+}
+
+/* 华丽模式下：把“浅色系的 Tailwind 灰阶”自动转成玻璃态，避免刺眼并提升可读性 */
+html[data-style-mode='fancy'] .text-gray-900,
+html[data-style-mode='fancy'] .text-gray-800,
+html[data-style-mode='fancy'] .text-gray-700,
+html[data-style-mode='fancy'] .text-slate-900,
+html[data-style-mode='fancy'] .text-slate-800,
+html[data-style-mode='fancy'] .text-slate-700 {
+  color: var(--text-main, #ffffff) !important;
+}
+
+html[data-style-mode='fancy'] .text-gray-600,
+html[data-style-mode='fancy'] .text-gray-500,
+html[data-style-mode='fancy'] .text-gray-400,
+html[data-style-mode='fancy'] .text-slate-600,
+html[data-style-mode='fancy'] .text-slate-500,
+html[data-style-mode='fancy'] .text-slate-400 {
+  color: var(--text-muted, rgba(226,232,240,0.8)) !important;
+}
+
+html[data-style-mode='fancy'] .bg-gray-50,
+html[data-style-mode='fancy'] .bg-slate-50 { background-color: rgba(255,255,255,0.06) !important; }
+html[data-style-mode='fancy'] .bg-gray-100,
+html[data-style-mode='fancy'] .bg-slate-100 { background-color: rgba(255,255,255,0.08) !important; }
+html[data-style-mode='fancy'] .bg-gray-200,
+html[data-style-mode='fancy'] .bg-slate-200 { background-color: rgba(255,255,255,0.10) !important; }
+
+html[data-style-mode='fancy'] .hover\:bg-gray-50:hover { background-color: rgba(255,255,255,0.08) !important; }
+html[data-style-mode='fancy'] .hover\:bg-gray-100:hover { background-color: rgba(255,255,255,0.10) !important; }
+html[data-style-mode='fancy'] .hover\:bg-gray-200:hover { background-color: rgba(255,255,255,0.12) !important; }
+
+html[data-style-mode='fancy'] .border-gray-100,
+html[data-style-mode='fancy'] .border-gray-200,
+html[data-style-mode='fancy'] .border-gray-300,
+html[data-style-mode='fancy'] .border-slate-200,
+html[data-style-mode='fancy'] .border-slate-300 {
+  border-color: var(--panel-border, rgba(255,255,255,0.18)) !important;
+}
+
+html[data-style-mode='fancy'] .divide-gray-200 > :not([hidden]) ~ :not([hidden]),
+html[data-style-mode='fancy'] .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--panel-border, rgba(255,255,255,0.18)) !important;
+}
+
+/* 动画 */
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(0, 20px); }
+}
+.animate-float { animation: float 8s ease-in-out infinite; }
+.animate-spin-slow { animation: spin 12s linear infinite; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* 滚动条 */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.5); }

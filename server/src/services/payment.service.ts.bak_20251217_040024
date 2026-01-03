@@ -1,0 +1,29 @@
+import { Payment } from '@prisma/client'; // ✅ 修复：导入 Payment 类型
+import prisma from '../utils/prisma';
+import crypto from 'crypto';
+
+export interface PaymentRequest {
+  bookingId: string;
+  payerId: string;
+  payeeId: string;
+  amount: number;
+  paymentMethod: 'simulate' | 'alipay' | 'wechat';
+}
+
+// ... (其他代码保持不变)
+
+export async function createPayment(request: PaymentRequest): Promise<Payment> {
+  const payment = await prisma.payment.create({
+    data: {
+      bookingId: request.bookingId,
+      payerId: request.payerId,
+      payeeId: request.payeeId,
+      amount: request.amount,
+      paymentMethod: request.paymentMethod,
+      status: 'pending'
+    }
+  });
+  return payment;
+}
+
+// ... (其他代码保持不变)
