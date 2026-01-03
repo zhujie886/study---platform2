@@ -12,6 +12,10 @@ import { UltimatePet } from '../components/UltimatePet';
 
 const APPS: any[] = [];
 
+const isThemeMode = (value: unknown): value is ThemeMode => (
+  value === 'macaron' || value === 'cyber' || value === 'forest'
+);
+
 const Personalize = () => {
   const [activeApps, setActiveApps] = useState<string[]>([]);
   const [theme, setTheme] = useState<ThemeMode>('macaron');
@@ -21,21 +25,21 @@ const Personalize = () => {
   const [windowPositions, setWindowPositions] = useState<Record<string, {x: number, y: number}>>({});
   const [dockPos, setDockPos] = useState({ x: window.innerWidth / 2 - 200, y: window.innerHeight - 100 });
 
-  // 1. 初始化数据加载
+  // 1. 初始化数据加�?  useEffect(() => {
   useEffect(() => {
     const load = async () => {
         try {
             const data = await fetchConfig();
             if (data) {
-                if (data.theme) setTheme(data.theme);
-                setActiveApps([]); // 入口已移到 MagicDock
+                if (isThemeMode(data.theme)) setTheme(data.theme);
+                setActiveApps([]); // 入口已移�?MagicDock
                 
                 // 恢复窗口位置
                 if (data.layout?.windows) {
                     setWindowPositions(data.layout.windows);
                 }
                 // 恢复 Dock 位置
-                if (data.layout?.dock && data.layout.dock.x !== 500) { // 简单过滤默认值
+                if (data.layout?.dock && data.layout.dock.x !== 500) { // 简单过滤默认�?
                     setDockPos(data.layout.dock);
                 }
             }
@@ -63,12 +67,12 @@ const Personalize = () => {
 
   // 保存 Dock 位置
   const handleDockSave = (pos: { x: number, y: number }) => {
-      // 修正：保存 Dock 中心点或左上角，这里直接保存 transform 结果
+      // 修正：保�?Dock 中心点或左上角，这里直接保存 transform 结果
       saveConfig({ layout: { dock: pos } });
   };
 
   const toggleApp = (id: string) => {
-    // 旧入口停用
+    // Legacy entry disabled.
   };
 
   const cycleTheme = () => {
@@ -115,7 +119,7 @@ const Personalize = () => {
         {/* 点击特效 & 背景切换 */}
         <ClickEffects theme={theme} onDoubleClick={cycleTheme} />
 
-        {/* 创意画布 (照片墙) - 自动读取后端数据 */}
+        {/* 创意画布 (照片�? - 自动读取后端数据 */}
         <CreativeCanvas theme={theme} />
 
         {/* 个性化页渲染唯一宠物实例 */}
@@ -124,9 +128,9 @@ const Personalize = () => {
 
 
 
-        {/* 悬浮窗口层 - 全部使用 DraggableWindow 包装 */}
+        {/* 悬浮窗口�?- 全部使用 DraggableWindow 包装 */}
         <AnimatePresence>
-            {/* 旧窗口入口已关闭，窗口渲染交给 MagicDock */}
+            {/* 旧窗口入口已关闭，窗口渲染交�?MagicDock */}
         </AnimatePresence>
 
         {/* 顶部标题 */}
