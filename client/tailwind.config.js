@@ -1,11 +1,13 @@
 /** @type {import('tailwindcss').Config} */
+const alphaMix = (varName, alpha) => `color-mix(in srgb, var(${varName}) ${alpha}%, transparent)`;
+
 const colorScale = (varName) => ({
   DEFAULT: `var(${varName})`,
-  50: `var(${varName})`,
-  100: `var(${varName})`,
-  200: `var(${varName})`,
-  300: `var(${varName})`,
-  400: `var(${varName})`,
+  50: alphaMix(varName, 40),
+  100: alphaMix(varName, 40),
+  200: alphaMix(varName, 40),
+  300: alphaMix(varName, 40),
+  400: alphaMix(varName, 40),
   500: `var(${varName})`,
   600: `var(${varName})`,
   700: `var(${varName})`,

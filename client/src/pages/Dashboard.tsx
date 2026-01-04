@@ -203,13 +203,19 @@ export default function Dashboard() {
 
     <div className="relative overflow-hidden rounded-2xl glass-card">
       {/* 顶部柔光背景 */}
-      <div className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-pink-200/35 blur-3xl dark:bg-pink-900/20" />
-      <div className="pointer-events-none absolute -bottom-28 -left-28 h-80 w-80 rounded-full bg-rose-200/35 blur-3xl dark:bg-rose-900/20" />
+      <div
+        className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 18%, transparent)' }}
+      />
+      <div
+        className="pointer-events-none absolute -bottom-28 -left-28 h-80 w-80 rounded-full blur-3xl"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 12%, transparent)' }}
+      />
 
       <div className="relative p-8">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-pink-50 to-white border border-pink-100 shadow-sm dark:from-gray-800 dark:to-gray-900 dark:border-gray-700">
+            <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-xl soft-tile shadow-sm">
               <PhotoIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
@@ -225,7 +231,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => navigate("/personalize")}
-              className="px-4 py-2 rounded-xl bg-primary-600 text-pink text-sm font-semibold shadow hover:bg-primary-700 transition-colors dark:bg-primary-600 dark:hover:bg-primary-500 dark:text-white"
+              className="px-4 py-2 rounded-xl btn-soft text-sm font-semibold"
             >
               前往个性化
             </button>
@@ -510,7 +516,7 @@ export default function Dashboard() {
 
 function StatCard({ title, value, icon: Icon, color, link }: any) {
   const colorClasses = {
-    primary: 'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400',
+    primary: 'soft-tile text-[var(--primary-color)]',
     yellow: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400',
     green: 'bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400',
     blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
