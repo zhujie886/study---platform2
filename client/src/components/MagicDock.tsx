@@ -301,6 +301,22 @@ export const MagicDock: React.FC = () => {
     setAchInput('');
   };
 
+  const clearAllWidgets = () => {
+    setPhotos([]);
+    setStickers([]);
+    setPendants([]);
+    setShowCountdown(false);
+    setShowFortune(false);
+    setShowStickerCenter(false);
+    setShowPendantCenter(false);
+    setShowAchievement(false);
+    setShowMood(false);
+    setShowHabit(false);
+    setShowCapsule(false);
+    setShowNote(false);
+    setShowDoodle(false);
+  };
+
   const fireThemeToggle = () => {
     window.dispatchEvent(new CustomEvent('magic-theme-toggle'));
   };
@@ -338,7 +354,7 @@ export const MagicDock: React.FC = () => {
         <Divider />
         <DockItem emoji="⏰" label="倒计时" onClick={() => setShowCountdown(true)} />
         <DockItem emoji="🔮" label="求签" onClick={() => setShowFortune(true)} />
-        <DockItem emoji="🧹" label="清空" onClick={() => { setPhotos([]); setStickers([]); setPendants([]); }} />
+        <DockItem emoji="🧹" label="清空" onClick={clearAllWidgets} />
       </motion.div>
 
       <AnimatePresence>

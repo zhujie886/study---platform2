@@ -1,4 +1,5 @@
 ﻿import { Outlet, NavLink } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -22,6 +23,8 @@ import { MagicDock } from './MagicDock';
 export default function Layout() {
   const { theme, setTheme } = useThemeStore();
   const [collapsed, setCollapsed] = useState(false);
+  const location = useLocation();
+  const showMagicDock = location.pathname.startsWith('/personalize');
 
   useEffect(() => {
     setTheme(theme.name);
@@ -121,7 +124,7 @@ export default function Layout() {
       </main>
 
       <FloatingHub />
-      <MagicDock />
+      {showMagicDock && <MagicDock />}
       <PersonalizationLayer />
     </div>
   );

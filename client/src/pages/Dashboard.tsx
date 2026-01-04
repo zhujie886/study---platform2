@@ -146,6 +146,11 @@ export default function Dashboard() {
     reader.readAsDataURL(file);
   };
 
+  const handleAvatarClear = () => {
+    setCustomAvatar(null);
+    localStorage.removeItem('dashboard_custom_avatar');
+  };
+
   const handleFrameSelect = (id: string) => {
     setCustomFrame(id);
     localStorage.setItem('dashboard_custom_frame', id);
@@ -237,6 +242,29 @@ export default function Dashboard() {
               </p>
               <div className="text-xs text-gray-500 mt-1">
                 
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <label
+                  htmlFor="dashboard-avatar-upload"
+                  className="px-3 py-1.5 rounded-lg bg-white/80 text-gray-700 text-xs font-semibold shadow-sm border border-gray-200 hover:bg-white transition"
+                >
+                  上传头像
+                </label>
+                {customAvatar && (
+                  <button
+                    onClick={handleAvatarClear}
+                    className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-semibold border border-gray-200 hover:bg-gray-200 transition"
+                  >
+                    清除头像
+                  </button>
+                )}
+                <input
+                  id="dashboard-avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
               </div>
               <div className="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <span className="inline-block h-2 w-2 rounded-full bg-emerald-400/80 shadow-[0_0_0_4px_rgba(52,211,153,0.18)] dark:shadow-[0_0_0_4px_rgba(52,211,153,0.1)]" />

@@ -154,7 +154,7 @@ export default function MemoPage() {
         </div>
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+          className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-opacity"
         >
           <PlusIcon className="w-5 h-5 mr-2" />
           新建备忘录
@@ -181,7 +181,7 @@ export default function MemoPage() {
             <p className="text-gray-500 text-lg mb-4">还没有备忘录</p>
             <button
               onClick={() => setIsCreateModalOpen(true)}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-opacity"
             >
               创建第一个备忘录
             </button>
@@ -292,7 +292,7 @@ function MemoModal({ isOpen, onClose, title, formData, setFormData, onSubmit, ad
               )}
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={onSubmit} className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">保存</button>
+              <button onClick={onSubmit} className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:opacity-90 transition-opacity">保存</button>
               <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">取消</button>
             </div>
           </div>
