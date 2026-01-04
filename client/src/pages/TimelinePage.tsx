@@ -203,7 +203,7 @@ export default function TimelinePage() {
         <div className="flex gap-2">
           <button
             onClick={handleToday}
-            className="px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
+            className="px-4 py-2 rounded-lg btn-soft"
           >
             今天
           </button>
@@ -272,7 +272,7 @@ export default function TimelinePage() {
             <h2 className="text-lg font-semibold text-gray-900">任务看板</h2>
             <button
               onClick={() => setIsAddingTask(true)}
-              className="flex items-center px-3 py-1 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700"
+              className="flex items-center px-3 py-1 rounded-lg btn-soft text-sm"
             >
               <PlusIcon className="w-4 h-4 mr-1" />
               添加
@@ -291,7 +291,7 @@ export default function TimelinePage() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleAddTask}
-                    className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700"
+                    className="px-4 py-2 rounded-lg btn-soft text-sm"
                   >
                     保存
                   </button>
@@ -361,7 +361,7 @@ export default function TimelinePage() {
             <h2 className="text-lg font-semibold text-gray-900">时间轴</h2>
             <button
               onClick={handleAddTimeBlock}
-              className="flex items-center px-3 py-1 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700"
+              className="flex items-center px-3 py-1 rounded-lg btn-soft text-sm"
             >
               <PlusIcon className="w-4 h-4 mr-1" />
               添加
@@ -407,6 +407,4 @@ export default function TimelinePage() {
     </div>
   );
 }
-
-
 

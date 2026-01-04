@@ -13,6 +13,37 @@ body {
   overflow-x: hidden;
 }
 
+/* Soft, theme-aware surfaces/buttons */
+:root {
+  --primary-soft-10: color-mix(in srgb, var(--primary-color) 10%, transparent);
+  --primary-soft-16: color-mix(in srgb, var(--primary-color) 16%, transparent);
+  --primary-soft-22: color-mix(in srgb, var(--primary-color) 22%, transparent);
+  --primary-soft-border: color-mix(in srgb, var(--primary-color) 28%, transparent);
+  --primary-soft-shadow: color-mix(in srgb, var(--primary-color) 14%, transparent);
+}
+
+.surface-soft {
+  background: var(--primary-soft-10);
+}
+
+.soft-tile {
+  background: var(--primary-soft-10);
+  border: 1px solid var(--primary-soft-border);
+}
+
+.btn-soft {
+  background: var(--primary-soft-16);
+  border: 1px solid var(--primary-soft-border);
+  color: var(--text-main, #0f172a);
+  box-shadow: 0 6px 16px var(--primary-soft-shadow);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-soft:hover {
+  background: var(--primary-soft-22);
+  box-shadow: 0 8px 18px var(--primary-soft-shadow);
+}
+
 /* 简约/华丽模式：由 html[data-style-mode] 控制 */
 html[data-style-mode='simple'] body {
   background: var(--background-main, #f8fafc);

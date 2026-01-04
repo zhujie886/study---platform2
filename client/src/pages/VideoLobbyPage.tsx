@@ -73,7 +73,10 @@ export default function VideoLobbyPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* 创建会议 */}
-          <div className="border-2 border-dashed border-primary-100 rounded-xl p-6 bg-primary-50">
+          <div
+            className="border-2 border-dashed rounded-xl p-6 surface-soft"
+            style={{ borderColor: 'var(--primary-soft-border)' }}
+          >
             <h2 className="text-xl font-semibold text-primary-900 mb-4">创建新会议</h2>
             <input
               value={title}
@@ -85,11 +88,7 @@ export default function VideoLobbyPage() {
             <button
               onClick={createAndEnter}
               disabled={creating}
-              className="w-full py-3 rounded-lg font-medium transition shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, var(--primary-color, #e11d48), var(--secondary-color, #f472b6))',
-                color: '#fff'
-              }}
+              className="w-full py-3 rounded-lg font-medium btn-soft"
             >
               {creating ? '正在创建...' : '立即发起会议'}
             </button>
