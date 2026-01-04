@@ -55,7 +55,13 @@ fi
 
 # 安装依赖
 echo "📦 安装依赖..."
-npm run install:all
+if [ -f "package.json" ]; then
+    npm run install:all
+else
+    echo "â„¹ï¸ æœªæ‰¾åˆ°æ ¹ç›®å½• package.jsonï¼Œåˆ†åˆ«å®‰è£… client/server ä¾èµ–"
+    (cd server && (npm ci || npm install))
+    (cd client && (npm ci || npm install))
+fi
 
 # 数据库迁移
 echo "🗄️ 运行数据库迁移..."
@@ -217,6 +223,5 @@ echo "Nginx日志:"
 echo "  访问日志: /var/log/nginx/access.log"
 echo "  错误日志: /var/log/nginx/error.log"
 echo ""
-
 
 
