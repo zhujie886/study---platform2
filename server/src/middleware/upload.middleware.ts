@@ -9,10 +9,10 @@ import { Request } from 'express';
 import { validateFileType, validateFileSize } from '../utils/fileStorage';
 
 // 文件大小限制（MB）
-const FILE_SIZE_LIMITS = {
+const FILE_SIZE_LIMITS: Record<keyof typeof ALLOWED_TYPES, number | null> = {
   avatar: 5,      // 头像 5MB
-  post: 10,       // 动态图片 10MB
-  video: 100,     // 视频 100MB
+  post: null,     // 动态图片不限制大小
+  video: null,    // 视频不限制大小
   document: 20,   // 文档 20MB
   recording: 500  // 会议录制 500MB
 };
@@ -49,12 +49,17 @@ function createUploadMiddleware(
   fieldName: string = 'file',
   maxCount: number = 1
 ) {
+  const limitMb = FILE_SIZE_LIMITS[category];
+  const limits: multer.Options['limits'] = {
+    files: maxCount
+  };
+  if (typeof limitMb === 'number' && Number.isFinite(limitMb)) {
+    limits.fileSize = limitMb * 1024 * 1024;
+  }
+
   return multer({
     storage: memoryStorage,
-    limits: {
-      fileSize: FILE_SIZE_LIMITS[category] * 1024 * 1024,
-      files: maxCount
-    },
+    limits,
     fileFilter: createFileFilter(category as any)
   });
 }
@@ -117,6 +122,5 @@ export function handleUploadError(error: any, req: any, res: any, next: any) {
   
   next();
 }
-
 
 

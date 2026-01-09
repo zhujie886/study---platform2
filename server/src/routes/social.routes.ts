@@ -1,9 +1,9 @@
 /**
- * 社交平台路由
+ * Social routes
  */
 
 import { Router } from 'express';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticateToken, requireNotMuted } from '../middleware/auth.middleware';
 import {
   createPost,
   getPosts,
@@ -24,32 +24,30 @@ import {
 
 const router = Router();
 
-// 所有路由都需要认证
+// All routes require auth
 router.use(authenticateToken);
 
-// 动态相关
-router.post('/posts', createPost);                    // 发布动态
-router.get('/posts', getPosts);                       // 获取动态列表
-router.get('/posts/search', searchPosts);             // 搜索动态
-router.get('/users/:userId/posts', getPostsByUser);   // 获取指定用户动态
-router.get('/posts/:id', getPostById);                // 获取动态详情
-router.put('/posts/:id', updatePost);                 // 更新动态
-router.delete('/posts/:id', deletePost);              // 删除动态
+// Posts
+router.post('/posts', requireNotMuted, createPost);
+router.get('/posts', getPosts);
+router.get('/posts/search', searchPosts);
+router.get('/users/:userId/posts', getPostsByUser);
+router.get('/posts/:id', getPostById);
+router.put('/posts/:id', updatePost);
+router.delete('/posts/:id', deletePost);
 
-// 点赞相关
-router.post('/posts/:id/like', likePost);             // 点赞
-router.delete('/posts/:id/like', unlikePost);         // 取消点赞
+// Likes
+router.post('/posts/:id/like', likePost);
+router.delete('/posts/:id/like', unlikePost);
 
-// 评论相关
-router.post('/posts/:id/comments', commentPost);      // 发表评论
-router.get('/posts/:id/comments', getComments);       // 获取评论列表
-router.delete('/comments/:commentId', deleteComment); // 删除评论
+// Comments
+router.post('/posts/:id/comments', requireNotMuted, commentPost);
+router.get('/posts/:id/comments', getComments);
+router.delete('/comments/:commentId', deleteComment);
 
-// 收藏相关
-router.post('/posts/:id/favorite', favoritePost);     // 收藏动态
-router.delete('/posts/:id/favorite', unfavoritePost); // 取消收藏
-router.get('/favorites', getMyFavorites);             // 获取我的收藏
+// Favorites
+router.post('/posts/:id/favorite', favoritePost);
+router.delete('/posts/:id/favorite', unfavoritePost);
+router.get('/favorites', getMyFavorites);
 
 export default router;
-
-

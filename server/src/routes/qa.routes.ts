@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken, isAdmin, optionalAuth } from '../middleware/auth.middleware';
+import { authenticateToken, isAdmin, optionalAuth, requireNotMuted } from '../middleware/auth.middleware';
 import {
   listCategories,
   createCategory,
@@ -35,7 +35,7 @@ router.post('/tags', authenticateToken, createTag);
 
 // Questions
 router.get('/questions', listQuestions);
-router.post('/questions', authenticateToken, createQuestion);
+router.post('/questions', authenticateToken, requireNotMuted, createQuestion);
 router.get('/questions/:id', optionalAuth, getQuestionById);
 router.put('/questions/:id', authenticateToken, updateQuestion);
 router.delete('/questions/:id', authenticateToken, deleteQuestion);
@@ -43,7 +43,7 @@ router.post('/questions/:id/resolve', authenticateToken, resolveQuestion);
 router.post('/questions/:id/reopen', authenticateToken, reopenQuestion);
 
 // Answers
-router.post('/questions/:id/answers', authenticateToken, createAnswer);
+router.post('/questions/:id/answers', authenticateToken, requireNotMuted, createAnswer);
 router.put('/answers/:id', authenticateToken, updateAnswer);
 router.delete('/answers/:id', authenticateToken, deleteAnswer);
 

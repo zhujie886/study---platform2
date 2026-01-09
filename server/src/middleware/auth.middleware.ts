@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import prisma from '../utils/prisma';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'default-secret-key';
@@ -49,6 +50,43 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
     } else {
         res.status(403).json({ error: '需要管理员权限' });
     }
+};
+
+export const requireNotMuted = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return res.status(401).json({ error: '需要登录才能操作' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { isMuted: true, mutedUntil: true, muteReason: true }
+    });
+
+    if (!user?.isMuted) {
+      return next();
+    }
+
+    const now = new Date();
+    if (user.mutedUntil && user.mutedUntil <= now) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { isMuted: false, mutedUntil: null, muteReason: null, mutedAt: null, mutedBy: null }
+      });
+      return next();
+    }
+
+    return res.status(423).json({
+      error: 'muted',
+      message: '你已被禁言，暂时无法发布内容',
+      mutedUntil: user.mutedUntil,
+      reason: user.muteReason
+    });
+  } catch (error) {
+    console.error('Mute check failed:', error);
+    return res.status(500).json({ error: '禁言状态检查失败' });
+  }
 };
 
 

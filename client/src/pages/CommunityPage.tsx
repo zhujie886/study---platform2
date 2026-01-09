@@ -99,6 +99,21 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
   ? String(API_BASE)
   : `${String(API_BASE).replace(/\/$/, '')}/api`;
+const FILE_BASE = (import.meta.env.VITE_FILE_BASE_URL || API_URL).replace(/\/$/, '');
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i;
+
+const resolveAssetUrl = (value?: string | null) => {
+  if (!value) return '';
+  if (value.startsWith('http') || value.startsWith('data:')) return value;
+  const normalized = value.startsWith('/') ? value : `/${value}`;
+  return `${FILE_BASE}${normalized}`;
+};
+
+const isImageAttachment = (attachment: Attachment) => {
+  const mime = attachment.mimeType || attachment.type || '';
+  if (mime.startsWith('image/')) return true;
+  return IMAGE_EXT.test(attachment.url || '');
+};
 
 const DEFAULT_LIMIT = 12;
 
@@ -196,6 +211,49 @@ export default function CommunityPage() {
 
   const currentPage = pagination?.page ?? page;
   const totalPages = pagination?.totalPages ?? 1;
+
+  const renderAttachmentGrid = (urls: string[]) => {
+    if (!urls || urls.length === 0) return null;
+    const preview = urls.slice(0, 4);
+    const extra = urls.length - preview.length;
+
+    if (urls.length === 1) {
+      return (
+        <div className="relative aspect-[4/5] bg-slate-100 overflow-hidden">
+          <img
+            src={resolveAssetUrl(preview[0])}
+            alt="附件图片"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 gap-1 bg-slate-100/60">
+        {preview.map((url, idx) => (
+          <div key={`${url}-${idx}`} className="relative aspect-square overflow-hidden bg-slate-100">
+            <img
+              src={resolveAssetUrl(url)}
+              alt={`附件图片 ${idx + 1}`}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              onError={(event) => {
+                event.currentTarget.style.display = 'none';
+              }}
+            />
+            {extra > 0 && idx === preview.length - 1 && (
+              <div className="absolute inset-0 bg-black/45 text-white flex items-center justify-center text-xl font-semibold">
+                +{extra}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -313,55 +371,71 @@ export default function CommunityPage() {
             <p className="text-sm text-gray-500 mt-2">换个筛选条件或发布你的第一个问题吧</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {questions.map((question) => (
-              <Link
-                key={question.id}
-                to={`/community/${question.id}`}
-                className="block bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${question.status === 'resolved' ? 'bg-green-100 text-green-700' : question.status === 'closed' ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
-                      {STATUS_LABELS[question.status] || '未解决'}
-                    </span>
-                    <span className="text-sm text-gray-500">{question.category?.name || '未分类'}</span>
-                  </div>
-                  <span className="text-xs text-gray-400">{formatDate(question.createdAt)}</span>
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
+            {questions.map((question) => {
+              const imageAttachments = (question.attachments || [])
+                .filter(isImageAttachment)
+                .map((item) => item.url)
+                .filter(Boolean);
+
+              return (
+                <div key={question.id} className="break-inside-avoid mb-4">
+                  <Link
+                    to={`/community/${question.id}`}
+                    className="group block bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition"
+                  >
+                    {imageAttachments.length > 0 && (
+                      <div className="overflow-hidden rounded-t-2xl">
+                        {renderAttachmentGrid(imageAttachments)}
+                      </div>
+                    )}
+
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${question.status === 'resolved' ? 'bg-green-100 text-green-700' : question.status === 'closed' ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
+                            {STATUS_LABELS[question.status] || '未解决'}
+                          </span>
+                          <span className="text-xs text-gray-500">{question.category?.name || '未分类'}</span>
+                        </div>
+                        <span className="text-xs text-gray-400">{formatDate(question.createdAt)}</span>
+                      </div>
+
+                      <h3 className="text-base font-semibold text-gray-900">
+                        {question.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 line-clamp-3">{getSnippet(question.content)}</p>
+
+                      {question.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {question.tags.map((tag) => (
+                            <button
+                              key={tag.id}
+                              type="button"
+                              onClick={(event) => {
+                                event.preventDefault();
+                                handleTagClick(tag.name);
+                              }}
+                              className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-600 hover:bg-primary-100 hover:text-primary-700 transition"
+                            >
+                              #{tag.name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+                        <div className="flex items-center gap-4">
+                          <span>回答 {question.answerCount}</span>
+                          <span>浏览 {question.viewCount}</span>
+                        </div>
+                        <span>{getDisplayName(question.user, question.isAnonymous)}</span>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-
-                <h3 className="mt-3 text-lg font-semibold text-gray-900">
-                  {question.title}
-                </h3>
-                <p className="mt-2 text-sm text-gray-600">{getSnippet(question.content)}</p>
-
-                {question.tags?.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {question.tags.map((tag) => (
-                      <button
-                        key={tag.id}
-                        type="button"
-                        onClick={(event) => {
-                          event.preventDefault();
-                          handleTagClick(tag.name);
-                        }}
-                        className="px-3 py-1 rounded-full text-xs bg-gray-100 text-gray-600 hover:bg-primary-100 hover:text-primary-700 transition"
-                      >
-                        #{tag.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-4 flex flex-wrap items-center justify-between text-sm text-gray-500">
-                  <div className="flex items-center gap-4">
-                    <span>回答 {question.answerCount}</span>
-                    <span>浏览 {question.viewCount}</span>
-                  </div>
-                  <span>{getDisplayName(question.user, question.isAnonymous)}</span>
-                </div>
-              </Link>
-            ))}
+              );
+            })}
           </div>
         )}
 

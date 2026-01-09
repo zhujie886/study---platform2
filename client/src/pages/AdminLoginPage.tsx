@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { adminAPI } from '@/services/api';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 function AdminLoginPage() {
   const [key, setKey] = useState('');
   const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,14 +19,14 @@ function AdminLoginPage() {
       const response = await adminAPI.login(key);
       const token = response.data?.token;
       if (!token) {
-        throw new Error('未获取到管理员令牌');
+        throw new Error(t('admin.login.error.noToken'));
       }
       localStorage.setItem('adminToken', token);
-      toast.success('管理员登录成功');
+      toast.success(t('admin.login.success'));
       const redirect = (location.state as any)?.from?.pathname || '/admin/dashboard';
       navigate(redirect);
     } catch (error: any) {
-      const message = error.response?.data?.error || error.message || '登录失败';
+      const message = error.response?.data?.error || error.message || t('admin.login.failed');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -32,13 +34,13 @@ function AdminLoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold text-center text-gray-900">管理员登录</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-900">{t('admin.login.title')}</h2>
         <div className="space-y-4">
           <div>
             <label htmlFor="admin-key" className="sr-only">
-              管理员密钥
+              {t('admin.login.label')}
             </label>
             <input
               id="admin-key"
@@ -46,7 +48,7 @@ function AdminLoginPage() {
               type="password"
               required
               className="relative block w-full px-3 py-2 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="请输入管理员密码"
+              placeholder={t('admin.login.placeholder')}
               value={key}
               onChange={(e) => setKey(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
@@ -58,7 +60,7 @@ function AdminLoginPage() {
           disabled={loading}
           className="relative flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md group hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400"
         >
-          {loading ? '登录中...' : '登录'}
+          {loading ? t('admin.login.loading') : t('admin.login.submit')}
         </button>
       </div>
     </div>

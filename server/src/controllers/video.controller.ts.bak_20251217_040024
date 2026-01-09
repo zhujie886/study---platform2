@@ -1,9 +1,0 @@
-import { Request, Response } from 'express';
-export const createRoom = async (req: Request, res: Response) => { res.json({ id: 'room_123', roomNumber: '123456' }); };
-export const getRoom = async (req: Request, res: Response) => { res.json({ id: 'room_123' }); };
-export const getRoomByNumber = async (req: Request, res: Response) => { res.json({ id: 'room_123' }); };
-export const joinRoom = async (req: Request, res: Response) => { res.json({ token: 'mock_token' }); };
-export const startRoom = async (req: Request, res: Response) => { res.json({ success: true }); };
-export const endRoom = async (req: Request, res: Response) => { res.json({ success: true }); };
-export const startRecording = async (req: Request, res: Response) => { res.json({ success: true }); };
-export const stopRecording = async (req: Request, res: Response) => { res.json({ success: true }); };

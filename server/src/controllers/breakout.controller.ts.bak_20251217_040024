@@ -1,6 +1,0 @@
-import { Request, Response } from 'express';
-
-export const createBreakoutRoom = (req: Request, res: Response) => res.json({});
-export const listBreakoutRooms = (req: Request, res: Response) => res.json([]);
-export const setBreakoutMembers = (req: Request, res: Response) => res.json({});
-export const endBreakoutRoom = (req: Request, res: Response) => res.json({});

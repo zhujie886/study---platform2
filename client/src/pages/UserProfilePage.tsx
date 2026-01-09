@@ -1,20 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import SmartAvatar from '@/components/Cosmetics/SmartAvatar';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { HeartIcon } from '@heroicons/react/24/solid';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
   ? String(API_BASE)
   : `${String(API_BASE).replace(/\/$/, '')}/api`;
-const FILE_BASE = String(API_BASE).endsWith('/api')
-  ? String(API_BASE).slice(0, -4)
-  : String(API_BASE).replace(/\/$/, '');
+const FILE_BASE = (import.meta.env.VITE_FILE_BASE_URL || API_URL).replace(/\/$/, '');
 const FALLBACK_AVATAR = '/default-avatar.png';
 
 const resolveAssetUrl = (value?: string | null) => {
@@ -162,6 +160,7 @@ interface Post {
 
 export default function ProfilePage() {
   const { userId } = useParams();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -275,7 +274,15 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-50">
       {/* 个人信息卡片 */}
       <div className="bg-white border-b">
-        <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto px-4 pt-6 pb-8">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm mb-6"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            返回上一页
+          </button>
           <div className="flex flex-col md:flex-row gap-6">
             {/* 头像 */}
             <SmartAvatar

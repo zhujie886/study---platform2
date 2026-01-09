@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,6 +10,7 @@ export default function LoginPage() {
   // 增加一个状态来显示详细错误
   const [debugError, setDebugError] = useState<string | null>(null);
   const { login, isLoading, isAuthenticated } = useAuthStore();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -30,27 +32,27 @@ export default function LoginPage() {
     setDebugError(null);
 
     if (!email || !password) {
-      toast.error('请填写所有字段');
+      toast.error(t('login.error.fillAll'));
       return;
     }
 
     try {
       console.log('🚀 开始登录请求:', { email });
       await login(email, password);
-      toast.success('登录成功！');
+      toast.success(t('login.error.success'));
     } catch (error: any) {
       console.error('登录错误详情:', error);
 
-      const errorMsg = error.message || '登录失败';
+      const errorMsg = error.message || t('login.error.failed');
       let displayMsg = errorMsg;
 
       // 智能错误提示
       if (errorMsg.includes('404')) {
-        displayMsg = '无法连接到服务器 (404)。请确保后端服务已启动。';
+        displayMsg = t('login.error.404');
       } else if (errorMsg.includes('Network Error')) {
-        displayMsg = '网络错误。请检查后端是否在端口 3000 运行。';
+        displayMsg = t('login.error.network');
       } else if (errorMsg.includes('401') || errorMsg.includes('Invalid credentials')) {
-        displayMsg = '邮箱或密码错误，请检查后重试。';
+        displayMsg = t('login.error.credentials');
       }
 
       toast.error(displayMsg);
@@ -66,16 +68,16 @@ export default function LoginPage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              个人信息管理系统
+              {t('login.title')}
             </h1>
-            <p className="text-gray-600 mt-2">智能备忘录 · 日历 · 时间管理</p>
+            <p className="text-gray-600 mt-2">{t('login.subtitle')}</p>
           </div>
 
           {/* 登录表单 */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                邮箱地址
+                {t('login.email')}
               </label>
               <input
                 id="email"
@@ -83,14 +85,14 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-                placeholder="your@email.com"
+                placeholder={t('login.emailPlaceholder')}
                 required
               />
             </div>
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                密码
+                {t('login.password')}
               </label>
               <input
                 id="password"
@@ -98,7 +100,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition"
-                placeholder="••••••••"
+                placeholder={t('login.passwordPlaceholder')}
                 required
               />
             </div>
@@ -106,7 +108,7 @@ export default function LoginPage() {
             {/* 调试信息显示区 */}
             {debugError && (
               <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded text-xs whitespace-pre-wrap font-mono">
-                <strong>调试信息 (请截图给开发者):</strong>
+                <strong>{t('login.debugTitle')}</strong>
                 <br />
                 {debugError}
               </div>
@@ -117,24 +119,24 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full py-3 px-4 bg-gradient-to-r from-primary-600 to-secondary-600 text-[color:var(--text-main)] font-medium rounded-lg hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {isLoading ? '登录中...' : '登录'}
+              {isLoading ? t('login.loading') : t('login.submit')}
             </button>
           </form>
 
           {/* 注册链接 */}
           <p className="mt-6 text-center text-sm text-gray-600">
-            还没有账号？{' '}
+            {t('login.noAccount')}{' '}
             <Link to="/register" className="text-primary-600 hover:text-primary-700 font-medium">
-              立即注册
+              {t('login.registerNow')}
             </Link>
           </p>
             <p className="mt-2 text-center text-sm text-gray-600">
-              管理员？{' '}
+              {t('login.admin')}{' '}
               <Link
                 to="/admin/login"
                 className="font-medium text-primary-600 hover:text-primary-500"
               >
-                管理员登录
+                {t('login.adminLogin')}
               </Link>
             </p>
 
@@ -142,8 +144,8 @@ export default function LoginPage() {
 
         {/* 演示账号 */}
         <div className="mt-4 text-center text-white text-sm bg-black/20 rounded-lg p-4 backdrop-blur-sm">
-          <p className="font-medium mb-1">💡 提示</p>
-          <p>如果是第一次使用，请先点击"立即注册"</p>
+          <p className="font-medium mb-1">💡 {t('login.tipTitle')}</p>
+          <p>{t('login.tipBody')}</p>
         </div>
       </div>
     </div>

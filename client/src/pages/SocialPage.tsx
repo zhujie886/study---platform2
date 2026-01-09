@@ -19,9 +19,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
   ? String(API_BASE)
   : `${String(API_BASE).replace(/\/$/, '')}/api`;
-const FILE_BASE = String(API_BASE).endsWith('/api')
-  ? String(API_BASE).slice(0, -4)
-  : String(API_BASE).replace(/\/$/, '');
+const FILE_BASE = (import.meta.env.VITE_FILE_BASE_URL || API_URL).replace(/\/$/, '');
 const FALLBACK_AVATAR = '/default-avatar.png';
 
 type Post = {
@@ -229,17 +227,83 @@ export default function SocialPage() {
     return buildPattern(accent, 'dots');
   }, [theme]);
 
+  const renderImageGrid = (images: string[]) => {
+    if (!images || images.length === 0) return null;
+    const preview = images.slice(0, 4);
+    const extra = images.length - preview.length;
+
+    if (images.length === 1) {
+      return (
+        <div className="relative aspect-[4/5] bg-slate-100 overflow-hidden">
+          <img
+            src={resolveAssetUrl(preview[0])}
+            alt="动态图片"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 gap-1 bg-slate-100/60">
+        {preview.map((img, idx) => (
+          <div key={img + idx} className="relative aspect-square overflow-hidden bg-slate-100">
+            <img
+              src={resolveAssetUrl(img)}
+              alt={`动态图片 ${idx + 1}`}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              onError={(event) => {
+                event.currentTarget.style.display = 'none';
+              }}
+            />
+            {extra > 0 && idx === preview.length - 1 && (
+              <div className="absolute inset-0 bg-black/45 text-white flex items-center justify-center text-xl font-semibold">
+                +{extra}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderVideoCard = (url: string) => (
+    <div className="relative aspect-[4/5] bg-black/80 overflow-hidden">
+      <video
+        src={resolveAssetUrl(url)}
+        controls
+        preload="metadata"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-semibold text-white bg-black/60">
+        视频
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="relative overflow-hidden bg-gradient-to-br from-rose-50 via-white to-amber-50 border-b">
+      <div
+        className="relative overflow-hidden border-b"
+        style={{
+          background: 'color-mix(in srgb, var(--background-main) 70%, var(--primary-color) 12%)',
+          borderColor: 'var(--panel-border, rgba(148,163,184,0.2))'
+        }}
+      >
         <div
           className="pointer-events-none absolute inset-0"
           style={heroPatternStyle}
         />
-        <div className="relative max-w-5xl mx-auto px-4 py-6">
+        <div className="relative max-w-6xl mx-auto px-4 py-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-orange-400 text-white flex items-center justify-center shadow">
+              <div
+                className="w-12 h-12 rounded-2xl text-white flex items-center justify-center shadow"
+                style={{ background: 'linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 70%, #ffffff 30%))' }}
+              >
                 <ChatBubbleLeftRightIcon className="w-6 h-6" />
               </div>
               <div>
@@ -249,7 +313,7 @@ export default function SocialPage() {
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-full shadow-sm hover:shadow-md transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 btn-soft rounded-full shadow-sm hover:shadow-md transition"
             >
               <PlusIcon className="w-5 h-5" />
               发布动态
@@ -257,7 +321,12 @@ export default function SocialPage() {
           </div>
 
           <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4">
-            <div className="bg-white/90 border border-white/60 rounded-2xl p-4 shadow-sm flex items-center gap-4">
+            <div className="rounded-2xl p-4 shadow-sm flex items-center gap-4"
+              style={{
+                background: 'color-mix(in srgb, var(--panel-bg, #ffffff) 75%, transparent)',
+                border: '1px solid var(--panel-border, rgba(148,163,184,0.2))'
+              }}
+            >
               <div className="relative">
                 {headerAvatarSrc && !avatarError ? (
                   <img
@@ -267,7 +336,10 @@ export default function SocialPage() {
                     onError={() => setAvatarError(true)}
                   />
                 ) : (
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gray-900 to-gray-600 text-white flex items-center justify-center text-lg font-semibold ring-2 ring-white">
+                  <div
+                    className="w-14 h-14 rounded-full text-white flex items-center justify-center text-lg font-semibold ring-2 ring-white"
+                    style={{ background: 'linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 60%, #ffffff 40%))' }}
+                  >
                     {displayInitial}
                   </div>
                 )}
@@ -281,22 +353,31 @@ export default function SocialPage() {
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-200 bg-white text-sm text-gray-700 hover:border-gray-300 hover:shadow-sm"
+                className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full btn-soft text-sm"
               >
                 <PencilSquareIcon className="w-4 h-4" />
                 记录此刻
               </button>
             </div>
 
-            <div className="bg-white/90 border border-white/60 rounded-2xl p-4 shadow-sm flex items-center justify-between">
+            <div className="rounded-2xl p-4 shadow-sm flex items-center justify-between"
+              style={{
+                background: 'color-mix(in srgb, var(--panel-bg, #ffffff) 75%, transparent)',
+                border: '1px solid var(--panel-border, rgba(148,163,184,0.2))'
+              }}
+            >
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setFilter('mine')}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition ${
                     filter === 'mine'
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900'
+                      ? 'text-white'
+                      : 'text-gray-600'
                   }`}
+                  style={filter === 'mine'
+                    ? { background: 'linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 70%, #ffffff 30%))' }
+                    : { background: 'color-mix(in srgb, var(--panel-bg, #ffffff) 80%, transparent)', border: '1px solid var(--panel-border, rgba(148,163,184,0.2))' }
+                  }
                 >
                   <UserCircleIcon className="w-4 h-4" />
                   我的动态
@@ -305,9 +386,13 @@ export default function SocialPage() {
                   onClick={() => setFilter('public')}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition ${
                     filter === 'public'
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:text-gray-900'
+                      ? 'text-white'
+                      : 'text-gray-600'
                   }`}
+                  style={filter === 'public'
+                    ? { background: 'linear-gradient(135deg, var(--primary-color), color-mix(in srgb, var(--primary-color) 70%, #ffffff 30%))' }
+                    : { background: 'color-mix(in srgb, var(--panel-bg, #ffffff) 80%, transparent)', border: '1px solid var(--panel-border, rgba(148,163,184,0.2))' }
+                  }
                 >
                   <GlobeAltIcon className="w-4 h-4" />
                   公开广场
@@ -319,7 +404,7 @@ export default function SocialPage() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-6">
         {loading ? (
           <div className="text-center py-16">
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
@@ -338,95 +423,78 @@ export default function SocialPage() {
             </button>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
             {posts.map((post) => (
-              <div key={post.id} className="bg-white rounded-2xl border border-gray-200 p-6 hover:shadow-md transition">
-                <div className="flex items-center gap-3 mb-4">
-                  <Link to={getProfileLink(post)}>
-                    <img
-                      src={getPostAvatarSrc(post)}
-                      alt={post.user.username}
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(event) => {
-                        event.currentTarget.src = FALLBACK_AVATAR;
-                      }}
-                    />
-                  </Link>
-                  <div className="flex-1">
-                    <Link to={getProfileLink(post)} className="flex items-center gap-2">
-                      <span className="font-medium text-gray-900 hover:text-primary-600">
-                        {post.user.username}
-                      </span>
-                      {post.user.isVerified && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
-                          已认证
-                        </span>
-                      )}
-                    </Link>
-                    <p className="text-sm text-gray-500">
-                      {new Date(post.createdAt).toLocaleString('zh-CN')}
-                    </p>
-                  </div>
-                </div>
+              <div key={post.id} className="break-inside-avoid mb-4">
+                <div className="group bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition">
+                  {post.images && post.images.length > 0 && renderImageGrid(post.images)}
+                  {!post.images?.length && post.videoUrl && renderVideoCard(post.videoUrl)}
 
-                {post.content && (
-                  <p className="text-gray-800 mb-3 whitespace-pre-wrap">{post.content}</p>
-                )}
+                  <div className="p-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Link to={getProfileLink(post)}>
+                        <img
+                          src={getPostAvatarSrc(post)}
+                          alt={post.user.username}
+                          className="w-10 h-10 rounded-full object-cover"
+                          onError={(event) => {
+                            event.currentTarget.src = FALLBACK_AVATAR;
+                          }}
+                        />
+                      </Link>
+                      <div className="flex-1 min-w-0">
+                        <Link to={getProfileLink(post)} className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900 hover:text-primary-600 truncate">
+                            {post.user.username}
+                          </span>
+                          {post.user.isVerified && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
+                              已认证
+                            </span>
+                          )}
+                        </Link>
+                        <p className="text-xs text-gray-500">
+                          {new Date(post.createdAt).toLocaleString('zh-CN')}
+                        </p>
+                      </div>
+                    </div>
 
-                {post.images && post.images.length > 0 && (
-                  <div className={`grid gap-2 mb-4 ${
-                    post.images.length === 1 ? 'grid-cols-1' :
-                    post.images.length === 2 ? 'grid-cols-2' :
-                    'grid-cols-3'
-                  }`}>
-                    {post.images.map((img, idx) => (
-                      <img
-                        key={idx}
-                        src={resolveAssetUrl(img)}
-                        alt={`图片 ${idx + 1}`}
-                        className="w-full h-48 object-cover rounded-xl"
-                        onError={(event) => {
-                          event.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
+                    {post.content && (
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap line-clamp-3">
+                        {post.content}
+                      </p>
+                    )}
 
-                {post.videoUrl && (
-                  <div className="mb-4 rounded-xl overflow-hidden border border-gray-100">
-                    <video src={resolveAssetUrl(post.videoUrl)} controls className="w-full" />
-                  </div>
-                )}
+                    {post.topics && post.topics.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {post.topics.map((topic, idx) => (
+                          <span
+                            key={idx}
+                            className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-xs"
+                          >
+                            #{topic}
+                          </span>
+                        ))}
+                      </div>
+                    )}
 
-                {post.topics && post.topics.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {post.topics.map((topic, idx) => (
-                      <span
-                        key={idx}
-                        className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm"
+                    <div className="flex items-center gap-6 pt-2 border-t border-gray-100">
+                      <button
+                        onClick={() => handleLike(post.id)}
+                        className={`flex items-center gap-2 transition ${
+                          post.isLiked ? 'text-rose-500' : 'text-gray-600 hover:text-rose-500'
+                        }`}
                       >
-                        #{topic}
-                      </span>
-                    ))}
+                        <HeartIcon className="w-5 h-5" />
+                        <span className="text-sm">{post.likeCount}</span>
+                      </button>
+
+                      <Link to={`/post/${post.id}`} className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition">
+                        <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                        <span className="text-sm">{post.commentCount}</span>
+                      </Link>
+                    </div>
                   </div>
-                )}
-
-                <div className="flex items-center gap-6 pt-4 border-t">
-                  <button
-                    onClick={() => handleLike(post.id)}
-                    className={`flex items-center gap-2 transition ${
-                      post.isLiked ? 'text-rose-500' : 'text-gray-600 hover:text-rose-500'
-                    }`}
-                  >
-                    <HeartIcon className="w-5 h-5" />
-                    <span>{post.likeCount}</span>
-                  </button>
-
-                  <Link to={`/post/${post.id}`} className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition">
-                    <ChatBubbleLeftRightIcon className="w-5 h-5" />
-                    <span>{post.commentCount}</span>
-                  </Link>
                 </div>
               </div>
             ))}
@@ -672,7 +740,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                     onChange={(e) => handleImageUpload(e.target.files)}
                   />
                 </label>
-                <span className="text-xs text-gray-500">最多 9 张，单张 ≤ 10MB</span>
+                <span className="text-xs text-gray-500">最多 9 张，大小不限（建议压缩以加快加载）</span>
               </div>
               {images.length > 0 && (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -719,7 +787,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                     移除视频
                   </button>
                 )}
-                <span className="text-xs text-gray-500">最大 100MB</span>
+                <span className="text-xs text-gray-500">大小不限（建议压缩以加快加载）</span>
               </div>
               {videoUrl && (
                 <div className="mt-3">

@@ -1,4 +1,5 @@
 import { ThemeProvider } from './hooks/useTheme';
+import { LanguageProvider } from './i18n/LanguageContext';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -39,7 +40,9 @@ try {
       <ErrorBoundary>
         <BrowserRouter basename={import.meta.env.BASE_URL}>
           <QueryClientProvider client={queryClient}>
-            <ThemeProvider><App /></ThemeProvider>
+            <LanguageProvider>
+              <ThemeProvider><App /></ThemeProvider>
+            </LanguageProvider>
           </QueryClientProvider>
         </BrowserRouter>
       </ErrorBoundary>

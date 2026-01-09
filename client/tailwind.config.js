@@ -30,7 +30,7 @@ export default {
         'main-bg': 'var(--background-main)',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Manrope', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
       },
     },
   },

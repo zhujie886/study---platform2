@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,17 +11,59 @@ html, body {
 body {
   background: var(--background-main, #f8fafc);
   color: var(--text-main, #0f172a);
+  font-family: var(--font-sans, 'Manrope', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif);
   transition: background-color 0.5s ease, color 0.5s ease;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* Soft, theme-aware surfaces/buttons */
 :root {
+  --font-sans: 'Manrope', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --primary-soft-10: color-mix(in srgb, var(--primary-color) 10%, transparent);
   --primary-soft-16: color-mix(in srgb, var(--primary-color) 16%, transparent);
   --primary-soft-22: color-mix(in srgb, var(--primary-color) 22%, transparent);
   --primary-soft-border: color-mix(in srgb, var(--primary-color) 28%, transparent);
   --primary-soft-shadow: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  --ease-apple: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-fast: 160ms;
+  --motion-medium: 240ms;
+  --focus-ring: color-mix(in srgb, var(--primary-color) 38%, transparent);
+  --focus-ring-strong: color-mix(in srgb, var(--primary-color) 58%, transparent);
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --shadow-color: rgba(15, 23, 42, 0.12);
+  --shadow-color-strong: rgba(15, 23, 42, 0.18);
+  --shadow-1: 0 10px 26px var(--shadow-color);
+  --shadow-2: 0 18px 44px var(--shadow-color-strong);
+  --shadow-3: 0 26px 70px rgba(15, 23, 42, 0.22);
+  --nav-hover-bg: color-mix(in srgb, var(--primary-color) 8%, transparent);
+  --nav-active-bg: color-mix(in srgb, var(--primary-color) 14%, transparent);
+  --nav-active-shadow: 0 10px 24px color-mix(in srgb, var(--primary-color) 18%, transparent);
+  --sidebar-shadow: 0 26px 70px rgba(15, 23, 42, 0.18);
+  --theme-glow-1: color-mix(in srgb, var(--primary-color) 26%, transparent);
+  --theme-glow-2: color-mix(in srgb, var(--secondary-color) 18%, transparent);
+  --theme-glow-3: color-mix(in srgb, var(--accent-color) 14%, transparent);
+  --theme-aurora-1: color-mix(in srgb, var(--primary-color) 12%, #ffffff 88%);
+  --theme-aurora-2: color-mix(in srgb, var(--secondary-color) 12%, #ffffff 88%);
+  --theme-aurora-3: color-mix(in srgb, var(--accent-color) 10%, #ffffff 90%);
+}
+
+html[data-style-mode='fancy'] {
+  --shadow-color: rgba(0, 0, 0, 0.45);
+  --shadow-color-strong: rgba(0, 0, 0, 0.55);
+  --shadow-1: 0 18px 50px rgba(0, 0, 0, 0.28);
+  --shadow-2: 0 26px 70px rgba(0, 0, 0, 0.36);
+  --shadow-3: 0 38px 90px rgba(0, 0, 0, 0.45);
+  --sidebar-shadow: 0 40px 90px rgba(0, 0, 0, 0.45);
+  --theme-glow-1: color-mix(in srgb, var(--primary-color) 48%, transparent);
+  --theme-glow-2: color-mix(in srgb, var(--secondary-color) 32%, transparent);
+  --theme-glow-3: color-mix(in srgb, var(--accent-color) 24%, transparent);
+  --theme-aurora-1: color-mix(in srgb, var(--primary-color) 22%, transparent);
+  --theme-aurora-2: color-mix(in srgb, var(--secondary-color) 18%, transparent);
+  --theme-aurora-3: color-mix(in srgb, var(--accent-color) 14%, transparent);
 }
 
 .surface-soft {
@@ -29,19 +73,139 @@ body {
 .soft-tile {
   background: var(--primary-soft-10);
   border: 1px solid var(--primary-soft-border);
+  transition: background-color var(--motion-fast) var(--ease-apple), box-shadow var(--motion-fast) var(--ease-apple), border-color var(--motion-fast) var(--ease-apple);
 }
 
 .btn-soft {
   background: var(--primary-soft-16);
   border: 1px solid var(--primary-soft-border);
   color: var(--text-main, #0f172a);
-  box-shadow: 0 6px 16px var(--primary-soft-shadow);
-  transition: background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 8px 18px var(--primary-soft-shadow);
+  transition: background-color var(--motion-fast) var(--ease-apple), box-shadow var(--motion-fast) var(--ease-apple), border-color var(--motion-fast) var(--ease-apple), color var(--motion-fast) var(--ease-apple), filter var(--motion-fast) var(--ease-apple), transform var(--motion-fast) var(--ease-apple);
 }
 
 .btn-soft:hover {
   background: var(--primary-soft-22);
-  box-shadow: 0 8px 18px var(--primary-soft-shadow);
+  box-shadow: 0 12px 22px var(--primary-soft-shadow);
+  transform: translateY(-1px);
+}
+
+.btn-soft:active {
+  filter: brightness(0.98);
+  transform: translateY(0);
+}
+
+/* Interaction polish */
+:where(button, [role="button"], a, input, textarea, select) {
+  transition-timing-function: var(--ease-apple);
+}
+
+:where(button, [role="button"], input, textarea, select) {
+  transition-property: color, background-color, border-color, box-shadow, filter, opacity;
+  transition-duration: var(--motion-fast);
+}
+
+:where(a) {
+  transition-property: color, text-decoration-color, opacity, filter;
+  transition-duration: var(--motion-fast);
+}
+
+:where(.shadow) { box-shadow: var(--shadow-1) !important; }
+:where(.shadow-md) { box-shadow: var(--shadow-2) !important; }
+:where(.shadow-lg) { box-shadow: var(--shadow-3) !important; }
+:where(.shadow-xl) { box-shadow: 0 46px 110px rgba(15, 23, 42, 0.2) !important; }
+
+.sidebar-shell {
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.nav-item {
+  position: relative;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  color: var(--text-main);
+  transition: background-color var(--motion-fast) var(--ease-apple), box-shadow var(--motion-fast) var(--ease-apple), border-color var(--motion-fast) var(--ease-apple), transform var(--motion-fast) var(--ease-apple);
+}
+
+.nav-item:hover {
+  background-color: var(--nav-hover-bg);
+  box-shadow: var(--shadow-1);
+  transform: translateX(2px);
+}
+
+.nav-item[aria-current="page"],
+.nav-item-active {
+  background-color: var(--nav-active-bg);
+  box-shadow: var(--nav-active-shadow);
+  border-color: var(--panel-border, rgba(128, 128, 128, 0.2));
+  color: var(--accent-color);
+  transform: translateX(0);
+}
+
+.nav-item .nav-icon {
+  transition: transform var(--motion-fast) var(--ease-apple), color var(--motion-fast) var(--ease-apple);
+}
+
+.nav-item:hover .nav-icon {
+  transform: translateY(-1px);
+}
+
+.nav-toggle {
+  background: color-mix(in srgb, var(--panel-bg, #ffffff) 70%, transparent);
+  border: 1px solid var(--panel-border, rgba(128, 128, 128, 0.2));
+  color: var(--text-main, #0f172a);
+  box-shadow: var(--shadow-1);
+  transition: transform var(--motion-fast) var(--ease-apple), box-shadow var(--motion-fast) var(--ease-apple), background-color var(--motion-fast) var(--ease-apple);
+}
+
+.nav-toggle:hover {
+  background: color-mix(in srgb, var(--panel-bg, #ffffff) 85%, transparent);
+  box-shadow: var(--shadow-2);
+  transform: translateY(-1px);
+}
+
+:where(button, [role="button"]) {
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  :where(button, [role="button"]) {
+    will-change: filter;
+  }
+  :where(button, [role="button"]):hover {
+    filter: brightness(1.02);
+  }
+  :where(.soft-tile):hover {
+    background: var(--primary-soft-16);
+    box-shadow: 0 10px 24px var(--primary-soft-shadow);
+  }
+}
+
+:where(button, [role="button"]):disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  filter: saturate(0.7);
+}
+
+:where(button, [role="button"], a):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+:where(input, textarea, select):focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--primary-color) 40%, #ffffff 60%);
+  box-shadow: 0 0 0 3px var(--focus-ring-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(button, [role="button"], a, input, textarea, select) {
+    transition-duration: 1ms !important;
+  }
+  .btn-soft:hover {
+    transform: none;
+  }
 }
 
 /* 简约/华丽模式：由 html[data-style-mode] 控制 */
@@ -57,13 +221,14 @@ html[data-style-mode='fancy'] body {
 
 /* 玻璃拟态卡片：在部分页面中使用（MemoDashboard/注册等） */
 .glass-card {
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  border-radius: var(--radius-lg);
+  transition: background-color var(--motion-medium) var(--ease-apple), border-color var(--motion-medium) var(--ease-apple), box-shadow var(--motion-medium) var(--ease-apple), transform var(--motion-medium) var(--ease-apple);
 }
 
 html[data-style-mode='simple'] .glass-card {
   background: var(--panel-bg, rgba(255, 255, 255, 0.9));
   border: 1px solid var(--panel-border, rgba(17,24,39,0.08));
-  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-1);
 }
 
 html[data-style-mode='fancy'] .glass-card {
@@ -71,7 +236,7 @@ html[data-style-mode='fancy'] .glass-card {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--panel-border, rgba(255,255,255,0.18));
-  box-shadow: 0 18px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(255,255,255,0.06) inset;
+  box-shadow: var(--shadow-2), 0 0 0 1px rgba(255,255,255,0.06) inset;
 }
 
 /* 让全站常见卡片类在华丽模式下自动适配主题（备忘录/日历等页面会受益） */
@@ -81,7 +246,7 @@ html[data-style-mode='fancy'] .bg-white {
   backdrop-filter: blur(12px) !important;
   border: 1px solid var(--panel-border, rgba(255, 255, 255, 0.1)) !important;
   color: var(--text-main, #ffffff) !important;
-  box-shadow: 0 18px 55px rgba(0,0,0,0.22) !important;
+  box-shadow: var(--shadow-2) !important;
 }
 
 /* 华丽模式下：把“浅色系的 Tailwind 灰阶”自动转成玻璃态，避免刺眼并提升可读性 */
@@ -128,6 +293,12 @@ html[data-style-mode='fancy'] .divide-slate-200 > :not([hidden]) ~ :not([hidden]
 }
 
 /* 动画 */
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); opacity: 0.86; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+.animate-pulse-slow { animation: pulse-soft 12s ease-in-out infinite; }
+
 @keyframes float {
   0%, 100% { transform: translate(0, 0); }
   50% { transform: translate(0, 20px); }

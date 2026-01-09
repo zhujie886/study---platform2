@@ -182,6 +182,11 @@ export const adminAPI = {
   getAllUsers: (search?: string) => api.get('/admin/users', { params: { search } }),
   users: (search?: string) => api.get('/admin/users', { params: { search } }),
   updateUser: (id: string, data: any) => api.put(`/admin/users/${id}`, data),
+  resetUserPassword: (id: string, data: { password: string }) =>
+    api.patch(`/admin/users/${id}/password`, data),
+  muteUser: (id: string, data: { days?: number | string; until?: string; reason?: string }) =>
+    api.patch(`/admin/users/${id}/mute`, data),
+  unmuteUser: (id: string) => api.patch(`/admin/users/${id}/unmute`),
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
   logs: (params?: { type?: 'out' | 'err'; lines?: number }) => api.get('/admin/logs', { params }),
 };

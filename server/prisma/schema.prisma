@@ -28,6 +28,11 @@ model User {
   totalBookings Int            @default(0)
   weeklySchedule String?       // JSON
   pricingRules  String?        // JSON
+  isMuted       Boolean        @default(false)
+  mutedUntil    DateTime?
+  muteReason    String?
+  mutedAt       DateTime?
+  mutedBy       String?
 
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt

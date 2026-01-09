@@ -11,9 +11,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
   ? String(API_BASE)
   : `${String(API_BASE).replace(/\/$/, '')}/api`;
-const FILE_BASE = String(API_BASE).endsWith('/api')
-  ? String(API_BASE).slice(0, -4)
-  : String(API_BASE).replace(/\/$/, '');
+const FILE_BASE = (import.meta.env.VITE_FILE_BASE_URL || API_URL).replace(/\/$/, '');
 const FALLBACK_AVATAR = '/default-avatar.png';
 
 const resolveAssetUrl = (value?: string | null) => {
@@ -127,7 +125,7 @@ export default function PostDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <p className="text-gray-600">没有找到这条动态</p>
-          <Link to="/social" className="mt-4 inline-flex items-center gap-2 text-primary-600">
+          <Link to="/social" className="mt-4 inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm relative z-10">
             <ArrowLeftIcon className="w-4 h-4" />
             返回动态广场
           </Link>
@@ -139,7 +137,7 @@ export default function PostDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <Link to="/social" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
+        <Link to="/social" className="inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm relative z-10">
           <ArrowLeftIcon className="w-4 h-4" />
           返回动态广场
         </Link>

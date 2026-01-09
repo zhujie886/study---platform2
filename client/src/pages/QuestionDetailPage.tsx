@@ -285,7 +285,7 @@ export default function QuestionDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <p className="text-gray-600">没有找到这个问题</p>
-          <Link to="/community" className="mt-4 inline-flex items-center gap-2 text-primary-600">
+          <Link to="/community" className="relative z-20 inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm">
             <ArrowLeftIcon className="w-4 h-4" />
             返回提问广场
           </Link>
@@ -297,7 +297,7 @@ export default function QuestionDetailPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <Link to="/community" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700">
+        <Link to="/community" className="relative z-20 inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm">
           <ArrowLeftIcon className="w-4 h-4" />
           返回提问广场
         </Link>

@@ -79,8 +79,9 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// 修复: 静态文件服务路径
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// 修复: 静态文件服务路径
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api/users', userRoutes);
 app.use('/api/memos', memoRoutes);

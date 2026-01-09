@@ -5,6 +5,9 @@ import {
   getDashboardStats,
   deleteUser,
   updateUser,
+  resetUserPassword,
+  muteUser,
+  unmuteUser,
   getAllMemos,
   getAllMeetings,
   getAllPosts,
@@ -23,6 +26,9 @@ router.get('/stats', getDashboardStats);
 router.get('/logs', getAdminLogs);
 router.get('/users', getAllUsers);
 router.put('/users/:id', updateUser);
+router.patch('/users/:id/password', resetUserPassword);
+router.patch('/users/:id/mute', muteUser);
+router.patch('/users/:id/unmute', unmuteUser);
 router.delete('/users/:id', deleteUser);
 
 // 新增路由

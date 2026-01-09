@@ -5,6 +5,7 @@ import { StarIcon, UserCircleIcon, ArrowRightOnRectangleIcon, SparklesIcon } fro
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { useTheme } from '@/hooks/useTheme';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { themes } from '@/themes';
 
 export default function FloatingHub() {
@@ -12,6 +13,7 @@ export default function FloatingHub() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const { theme, styleMode, setTheme, setStyleMode } = useTheme();
+  const { lang, setLang, t } = useLanguage();
   const [customAvatar, setCustomAvatar] = useState<string | null>(null);
   const [customFrame, setCustomFrame] = useState<string>('none');
 
@@ -86,11 +88,11 @@ export default function FloatingHub() {
     if (savedFrame) setCustomFrame(savedFrame);
   }, []);
   const quickLinks = [
-    { label: '仪表盘', path: '/' },
-    { label: '提问广场', path: '/community' },
-    { label: '发布动态', path: '/social' },
-    { label: '日历', path: '/calendar' },
-    { label: '个性化', path: '/personalize' },
+    { label: t('nav.dashboard'), path: '/' },
+    { label: t('nav.community'), path: '/community' },
+    { label: t('nav.social'), path: '/social' },
+    { label: t('nav.calendar'), path: '/calendar' },
+    { label: t('nav.personalize'), path: '/personalize' },
   ];
 
 
@@ -168,7 +170,7 @@ export default function FloatingHub() {
                   onClick={() => { navigate('/personalize'); setIsOpen(false); }}
                   className="w-14 h-14 rounded-full overflow-hidden bg-white/10 flex items-center justify-center ring-2 ring-[var(--accent-color)]"
                   style={frames.find((f) => f.id === customFrame)?.style}
-                  title="前往个性化"
+                  title={t('hub.gotoPersonalize')}
                 >
                   {customAvatar || user?.avatar ? (
                     <SmartAvatar src={customAvatar || user?.avatar || ""} className="w-full h-full object-cover" size={56} />
@@ -177,8 +179,8 @@ export default function FloatingHub() {
                   )}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-lg text-[var(--text-main)] truncate">{user?.username || '游客'}</div>
-                  <div className="text-xs text-[var(--text-muted)] truncate">{user?.email || '未设置邮箱'}</div>
+                  <div className="font-bold text-lg text-[var(--text-main)] truncate">{user?.username || t('hub.guest')}</div>
+                  <div className="text-xs text-[var(--text-muted)] truncate">{user?.email || t('hub.noEmail')}</div>
                 </div>
                 <button onClick={logout} className="p-2 hover:bg-white/10 rounded-full text-[var(--text-main)]">
                   <ArrowRightOnRectangleIcon className="w-6 h-6" />
@@ -200,7 +202,7 @@ export default function FloatingHub() {
 
                 <div className="bg-black/5 rounded-2xl p-4 border border-white/5">
                   <div className="flex justify-between items-center mb-3">
-                    <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">主题风格</span>
+                    <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hub.themeStyle')}</span>
                     <div className="flex gap-1 bg-black/10 rounded-lg p-1">
                       {['simple', 'fancy'].map(m => (
                         <button
@@ -208,7 +210,7 @@ export default function FloatingHub() {
                           onClick={() => setStyleMode(m as any)}
                           className={`text-[10px] px-3 py-1.5 rounded-md transition-all ${styleMode === m ? 'bg-white text-black shadow-sm' : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'}`}
                         >
-                          {m === 'simple' ? '简约' : '华丽'}
+                          {m === 'simple' ? t('hub.simple') : t('hub.fancy')}
                         </button>
                       ))}
                     </div>
@@ -229,6 +231,34 @@ export default function FloatingHub() {
                         <span className="truncate w-full text-center px-1">{t.name.split(' · ')[0]}</span>
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                <div className="bg-black/5 rounded-2xl p-4 border border-white/5 mt-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">{t('hub.language')}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setLang('zh')}
+                      className={`text-[11px] px-3 py-2 rounded-xl border transition-all ${
+                        lang === 'zh'
+                          ? 'border-[var(--primary-color)] bg-[var(--primary-color)]/10 text-[var(--text-main)]'
+                          : 'border-transparent hover:bg-white/5 text-[var(--text-muted)]'
+                      }`}
+                    >
+                      {t('hub.langZh')}
+                    </button>
+                    <button
+                      onClick={() => setLang('en')}
+                      className={`text-[11px] px-3 py-2 rounded-xl border transition-all ${
+                        lang === 'en'
+                          ? 'border-[var(--primary-color)] bg-[var(--primary-color)]/10 text-[var(--text-main)]'
+                          : 'border-transparent hover:bg-white/5 text-[var(--text-muted)]'
+                      }`}
+                    >
+                      {t('hub.langEn')}
+                    </button>
                   </div>
                 </div>
               </div>
