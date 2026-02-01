@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { adminAPI } from '../services/api';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type LogType = 'out' | 'err';
 
@@ -9,6 +10,7 @@ export default function AdminLogsPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [content, setContent] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const { t } = useLanguage();
 
   const params = useMemo(() => ({ type, lines }), [type, lines]);
 
@@ -20,7 +22,7 @@ export default function AdminLogsPage() {
       const data = res?.data ?? {};
       setContent((data?.content ?? '') as string);
     } catch (e: any) {
-      setError(e?.message ?? 'Failed to load logs');
+      setError(e?.message ?? t('加载日志失败'));
     } finally {
       setLoading(false);
     }
@@ -35,9 +37,9 @@ export default function AdminLogsPage() {
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">系统日志</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('系统日志')}</h1>
           <p className="text-sm text-gray-600">
-            仅管理员可见。默认读取 logs/out.log 或 logs/err.log（可用 LOG_DIR 自定义目录）。
+            {t('仅管理员可见。默认读取 logs/out.log 或 logs/err.log（可用 LOG_DIR 自定义目录）。')}
           </p>
         </div>
         <button
@@ -45,13 +47,13 @@ export default function AdminLogsPage() {
           className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-60"
           disabled={loading}
         >
-          {loading ? '刷新中...' : '刷新'}
+          {loading ? t('刷新中...') : t('刷新')}
         </button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <label className="text-sm text-gray-700">
-          日志类型：
+          {t('日志类型')}
           <select
             value={type}
             onChange={(e) => setType(e.target.value as LogType)}
@@ -63,7 +65,7 @@ export default function AdminLogsPage() {
         </label>
 
         <label className="text-sm text-gray-700">
-          行数：
+          {t('行数')}
           <input
             type="number"
             min={50}
@@ -86,9 +88,9 @@ export default function AdminLogsPage() {
           {type === 'out' ? 'stdout' : 'stderr'}
         </div>
         <pre className="p-4 text-xs leading-relaxed overflow-auto max-h-[70vh] whitespace-pre-wrap">
-{content || '（暂无日志内容 / 文件不存在）'}
+{content || t('（暂无日志内容 / 文件不存在）')}
         </pre>
       </div>
     </div>
   );
-}
+}

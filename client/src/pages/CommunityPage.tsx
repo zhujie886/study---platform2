@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { qaAPI } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Category = {
   id: string;
@@ -74,27 +75,7 @@ const STATUS_LABELS: Record<string, string> = {
   closed: '已关闭'
 };
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: '全部状态' },
-  { value: 'open', label: '未解决' },
-  { value: 'resolved', label: '已解决' },
-  { value: 'closed', label: '已关闭' }
-];
-
-const SORT_OPTIONS = [
-  { value: 'latest', label: '最新' },
-  { value: 'hot', label: '最热' }
-];
-
-const FALLBACK_CATEGORIES: Category[] = [
-  { id: '数学', name: '数学' },
-  { id: '语言', name: '语言' },
-  { id: '计算机', name: '计算机' },
-  { id: '金融', name: '金融' },
-  { id: '考研', name: '考研' },
-  { id: '面试', name: '面试' }
-];
-
+const DEFAULT_LIMIT = 12;
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
   ? String(API_BASE)
@@ -115,23 +96,6 @@ const isImageAttachment = (attachment: Attachment) => {
   return IMAGE_EXT.test(attachment.url || '');
 };
 
-const DEFAULT_LIMIT = 12;
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleString('zh-CN');
-}
-
-function getSnippet(text: string, limit = 140) {
-  const plain = text.trim().replace(/\s+/g, ' ');
-  if (plain.length <= limit) return plain;
-  return `${plain.slice(0, limit)}...`;
-}
-
-function getDisplayName(user: User | null, isAnonymous?: boolean) {
-  if (isAnonymous || user?.isAnonymous) return '匿名用户';
-  return user?.username || '匿名用户';
-}
-
 export default function CommunityPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -146,11 +110,95 @@ export default function CommunityPage() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
+  const { t, lang } = useLanguage();
+
+  const statusOptions = useMemo(() => (
+    [
+      { value: 'all', label: t('全部状态') },
+      { value: 'open', label: t('未解决') },
+      { value: 'resolved', label: t('已解决') },
+      { value: 'closed', label: t('已关闭') }
+    ]
+  ), [t]);
+
+  const sortOptions = useMemo(() => (
+    [
+      { value: 'latest', label: t('最新') },
+      { value: 'hot', label: t('最热') }
+    ]
+  ), [t]);
+
+  const fallbackCategories = useMemo(() => (
+    [
+      { id: '数学', name: t('数学') },
+      { id: '语言', name: t('语言') },
+      { id: '计算机', name: t('计算机') },
+      { id: '金融', name: t('金融') },
+      { id: '考研', name: t('考研') },
+      { id: '面试', name: t('面试') }
+    ]
+  ), [t]);
 
   const categoryOptions = useMemo(
-    () => [{ id: 'all', name: '全部领域' }, ...categories],
-    [categories]
+    () => [{ id: 'all', name: t('全部领域') }, ...categories],
+    [categories, t]
   );
+
+  const formatDate = (value: string) => new Date(value).toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US');
+
+  const getSnippet = (text: string, limit = 140) => {
+    const plain = text.trim().replace(/\s+/g, ' ');
+    if (plain.length <= limit) return plain;
+    return `${plain.slice(0, limit)}...`;
+  };
+
+  const getDisplayName = (user: User | null, isAnonymous?: boolean) => {
+    if (isAnonymous || user?.isAnonymous) return t('匿名用户');
+    return user?.username || t('匿名用户');
+  };
+
+  const renderAttachmentGrid = (urls: string[]) => {
+    if (!urls || urls.length === 0) return null;
+    const preview = urls.slice(0, 4);
+    const extra = urls.length - preview.length;
+
+    if (urls.length === 1) {
+      return (
+        <div className="relative aspect-[4/5] bg-slate-100 overflow-hidden">
+          <img
+            src={resolveAssetUrl(preview[0])}
+            alt={t('附件图片')}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            onError={(event) => {
+              event.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-2 gap-1 bg-slate-100/60">
+        {preview.map((url, idx) => (
+          <div key={`${url}-${idx}`} className="relative aspect-square overflow-hidden bg-slate-100">
+            <img
+              src={resolveAssetUrl(url)}
+              alt={t('附件图片 {index}', { index: idx + 1 })}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              onError={(event) => {
+                event.currentTarget.style.display = 'none';
+              }}
+            />
+            {extra > 0 && idx === preview.length - 1 && (
+              <div className="absolute inset-0 bg-black/45 text-white flex items-center justify-center text-xl font-semibold">
+                +{extra}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -158,12 +206,12 @@ export default function CommunityPage() {
         const response = await qaAPI.listCategories();
         setCategories(response.data.data || []);
       } catch (error) {
-        console.error('加载分类失败', error);
+        console.error(t('加载分类失败'), error);
       }
     };
 
     loadCategories();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -183,15 +231,15 @@ export default function CommunityPage() {
         setQuestions(response.data.data || []);
         setPagination(response.data.pagination || null);
       } catch (error) {
-        console.error('获取问题失败', error);
-        toast.error('加载问题失败');
+        console.error(t('获取问题失败'), error);
+        toast.error(t('加载问题失败'));
       } finally {
         setLoading(false);
       }
     };
 
     fetchQuestions();
-  }, [categoryId, status, sort, tagFilter, search, page, refreshKey]);
+  }, [categoryId, status, sort, tagFilter, search, page, refreshKey, t]);
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -212,49 +260,6 @@ export default function CommunityPage() {
   const currentPage = pagination?.page ?? page;
   const totalPages = pagination?.totalPages ?? 1;
 
-  const renderAttachmentGrid = (urls: string[]) => {
-    if (!urls || urls.length === 0) return null;
-    const preview = urls.slice(0, 4);
-    const extra = urls.length - preview.length;
-
-    if (urls.length === 1) {
-      return (
-        <div className="relative aspect-[4/5] bg-slate-100 overflow-hidden">
-          <img
-            src={resolveAssetUrl(preview[0])}
-            alt="附件图片"
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            onError={(event) => {
-              event.currentTarget.style.display = 'none';
-            }}
-          />
-        </div>
-      );
-    }
-
-    return (
-      <div className="grid grid-cols-2 gap-1 bg-slate-100/60">
-        {preview.map((url, idx) => (
-          <div key={`${url}-${idx}`} className="relative aspect-square overflow-hidden bg-slate-100">
-            <img
-              src={resolveAssetUrl(url)}
-              alt={`附件图片 ${idx + 1}`}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              onError={(event) => {
-                event.currentTarget.style.display = 'none';
-              }}
-            />
-            {extra > 0 && idx === preview.length - 1 && (
-              <div className="absolute inset-0 bg-black/45 text-white flex items-center justify-center text-xl font-semibold">
-                +{extra}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b sticky top-0 z-10">
@@ -263,8 +268,8 @@ export default function CommunityPage() {
             <div className="flex items-center gap-3">
               <SparklesIcon className="w-8 h-8 text-primary-600" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">提问广场</h1>
-                <p className="text-sm text-gray-500">真实问题 · 真实解答</p>
+                <h1 className="text-2xl font-bold text-gray-900">{t('提问广场')}</h1>
+                <p className="text-sm text-gray-500">{t('真实问题 · 真实解答')}</p>
               </div>
             </div>
             <button
@@ -272,7 +277,7 @@ export default function CommunityPage() {
               className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow transition font-medium"
             >
               <PlusIcon className="w-5 h-5" />
-              发布提问
+              {t('发布提问')}
             </button>
           </div>
 
@@ -282,7 +287,7 @@ export default function CommunityPage() {
               <input
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
-                placeholder="搜索标题或正文"
+                placeholder={t('搜索标题或正文')}
                 className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </form>
@@ -314,7 +319,7 @@ export default function CommunityPage() {
                     setPage(1);
                   }}
                 >
-                  {STATUS_OPTIONS.map((option) => (
+                  {statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -330,7 +335,7 @@ export default function CommunityPage() {
                     setPage(1);
                   }}
                 >
-                  {SORT_OPTIONS.map((option) => (
+                  {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -342,7 +347,7 @@ export default function CommunityPage() {
 
           {tagFilter && (
             <div className="mt-3 flex items-center gap-2">
-              <span className="text-sm text-gray-500">标签筛选:</span>
+              <span className="text-sm text-gray-500">{t('标签筛选:')}</span>
               <span className="inline-flex items-center gap-2 text-sm px-3 py-1 rounded-full bg-primary-100 text-primary-700">
                 #{tagFilter}
                 <button
@@ -362,13 +367,13 @@ export default function CommunityPage() {
         {loading ? (
           <div className="text-center py-16">
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
-            <p className="mt-4 text-gray-500">加载中...</p>
+            <p className="mt-4 text-gray-500">{t('加载中...')}</p>
           </div>
         ) : questions.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
             <SparklesIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-lg text-gray-700">暂时没有匹配的问题</p>
-            <p className="text-sm text-gray-500 mt-2">换个筛选条件或发布你的第一个问题吧</p>
+            <p className="text-lg text-gray-700">{t('暂时没有匹配的问题')}</p>
+            <p className="text-sm text-gray-500 mt-2">{t('换个筛选条件或发布你的第一个问题吧')}</p>
           </div>
         ) : (
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-4">
@@ -394,9 +399,9 @@ export default function CommunityPage() {
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold ${question.status === 'resolved' ? 'bg-green-100 text-green-700' : question.status === 'closed' ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
-                            {STATUS_LABELS[question.status] || '未解决'}
+                            {t(STATUS_LABELS[question.status] || '未解决')}
                           </span>
-                          <span className="text-xs text-gray-500">{question.category?.name || '未分类'}</span>
+                          <span className="text-xs text-gray-500">{question.category?.name || t('未分类')}</span>
                         </div>
                         <span className="text-xs text-gray-400">{formatDate(question.createdAt)}</span>
                       </div>
@@ -426,8 +431,8 @@ export default function CommunityPage() {
 
                       <div className="flex flex-wrap items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
                         <div className="flex items-center gap-4">
-                          <span>回答 {question.answerCount}</span>
-                          <span>浏览 {question.viewCount}</span>
+                          <span>{t('回答 {count}', { count: question.answerCount })}</span>
+                          <span>{t('浏览 {count}', { count: question.viewCount })}</span>
                         </div>
                         <span>{getDisplayName(question.user, question.isAnonymous)}</span>
                       </div>
@@ -447,7 +452,7 @@ export default function CommunityPage() {
               disabled={currentPage <= 1}
               className="px-3 py-2 rounded-lg border border-gray-200 text-sm disabled:opacity-50"
             >
-              上一页
+              {t('上一页')}
             </button>
             <span className="text-sm text-gray-500">
               {currentPage} / {totalPages}
@@ -458,7 +463,7 @@ export default function CommunityPage() {
               disabled={currentPage >= totalPages}
               className="px-3 py-2 rounded-lg border border-gray-200 text-sm disabled:opacity-50"
             >
-              下一页
+              {t('下一页')}
             </button>
           </div>
         )}
@@ -508,7 +513,15 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
   const [uploading, setUploading] = useState(false);
   const [similarQuestions, setSimilarQuestions] = useState<Question[]>([]);
   const { token } = useAuthStore();
-  const categoryOptions = categories.length > 0 ? categories : FALLBACK_CATEGORIES;
+  const { t } = useLanguage();
+  const categoryOptions = categories.length > 0 ? categories : useMemo(() => ([
+    { id: '数学', name: t('数学') },
+    { id: '语言', name: t('语言') },
+    { id: '计算机', name: t('计算机') },
+    { id: '金融', name: t('金融') },
+    { id: '考研', name: t('考研') },
+    { id: '面试', name: t('面试') }
+  ]), [t]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -522,12 +535,12 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
         const response = await qaAPI.listTags({ q: query });
         setTagSuggestions(response.data.data || []);
       } catch (error) {
-        console.error('加载标签失败', error);
+        console.error(t('加载标签失败'), error);
       }
     }, 250);
 
     return () => clearTimeout(timer);
-  }, [tagInput]);
+  }, [tagInput, t]);
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -540,18 +553,18 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
         const response = await qaAPI.listQuestions({ q: query, page: 1, limit: 5 });
         setSimilarQuestions(response.data.data || []);
       } catch (error) {
-        console.error('加载相似问题失败', error);
+        console.error(t('加载相似问题失败'), error);
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [title]);
+  }, [title, t]);
 
   const addTag = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed || tags.includes(trimmed)) return;
     if (tags.length >= 5) {
-      toast.error('最多添加 5 个标签');
+      toast.error(t('最多添加 5 个标签'));
       return;
     }
     setTags((prev) => [...prev, trimmed]);
@@ -569,7 +582,7 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     if (!token) {
-      toast.error('请先登录后上传附件');
+      toast.error(t('请先登录后上传附件'));
       return;
     }
     try {
@@ -589,13 +602,13 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
         }))
         .filter((item: any) => item.url);
       if (uploaded.length === 0) {
-        toast.error('附件上传失败');
+        toast.error(t('附件上传失败'));
         return;
       }
       setAttachments((prev) => [...prev, ...uploaded]);
     } catch (error) {
-      console.error('附件上传失败', error);
-      toast.error('附件上传失败');
+      console.error(t('附件上传失败'), error);
+      toast.error(t('附件上传失败'));
     } finally {
       setUploading(false);
     }
@@ -608,12 +621,12 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
     const trimmedContent = content.trim();
 
     if (trimmedTitle.length < 5 || trimmedTitle.length > 80) {
-      toast.error('标题需要 5-80 字');
+      toast.error(t('标题需要 5-80 字'));
       return;
     }
 
     if (trimmedContent.length < 30) {
-      toast.error('正文至少 30 字');
+      toast.error(t('正文至少 30 字'));
       return;
     }
 
@@ -622,17 +635,17 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
       : (tagInput.trim() ? [tagInput.trim()] : []);
 
     if (!categoryId) {
-      toast.error('请选择领域分类');
+      toast.error(t('请选择领域分类'));
       return;
     }
 
     if (effectiveTags.length === 0) {
-      toast.error('请至少添加 1 个标签');
+      toast.error(t('请至少添加 1 个标签'));
       return;
     }
 
     if (uploading) {
-      toast.error('请等待附件上传完成');
+      toast.error(t('请等待附件上传完成'));
       return;
     }
 
@@ -647,11 +660,11 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
         attachments,
         isAnonymous
       });
-      toast.success('提问已发布');
+      toast.success(t('提问已发布'));
       onSuccess();
     } catch (error) {
-      console.error('发布提问失败', error);
-      const message = (error as any)?.response?.data?.error || '发布失败';
+      console.error(t('发布提问失败'), error);
+      const message = (error as any)?.response?.data?.error || t('发布失败');
       toast.error(message);
     } finally {
       setLoading(false);
@@ -664,26 +677,26 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">发布提问</h2>
-              <p className="text-sm text-gray-500">把问题描述清楚，更容易获得好答案</p>
+              <h2 className="text-2xl font-bold text-gray-900">{t('发布提问')}</h2>
+              <p className="text-sm text-gray-500">{t('把问题描述清楚，更容易获得好答案')}</p>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">×</button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">标题</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('标题')}</label>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="5-80 字，概括你的问题"
+                placeholder={t('5-80 字，概括你的问题')}
                 maxLength={80}
                 required
               />
               {similarQuestions.length > 0 && (
                 <div className="mt-3 rounded-xl border border-primary-100 bg-primary-50/60 p-3">
-                  <div className="text-sm font-semibold text-primary-700">可能相关的问题</div>
+                  <div className="text-sm font-semibold text-primary-700">{t('可能相关的问题')}</div>
                   <div className="mt-2 space-y-2">
                     {similarQuestions.map((item) => (
                       <Link
@@ -700,27 +713,27 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">正文</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('正文')}</label>
               <textarea
                 value={content}
                 onChange={(event) => setContent(event.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 rows={8}
-                placeholder="支持 Markdown。请描述背景、遇到的问题、已尝试的办法。"
+                placeholder={t('支持 Markdown。请描述背景、遇到的问题、已尝试的办法。')}
                 required
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="block text-sm font-medium text-gray-700">
-                领域分类
+                {t('领域分类')}
                 <select
                   value={categoryId}
                   onChange={(event) => setCategoryId(event.target.value)}
                   className="mt-2 w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
                   required
                 >
-                  <option value="">请选择领域</option>
+                  <option value="">{t('请选择领域')}</option>
                   {categoryOptions.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -729,12 +742,12 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
                 </select>
                 {categories.length === 0 && (
                   <div className="mt-2 text-xs text-rose-500">
-                    暂无可选领域，已使用默认领域选项
+                    {t('暂无可选领域，已使用默认领域选项')}
                   </div>
                 )}
               </label>
               <div>
-                <label className="block text-sm font-medium text-gray-700">标签（1-5 个）</label>
+                <label className="block text-sm font-medium text-gray-700">{t('标签（1-5 个）')}</label>
                 <div className="mt-2 flex gap-2">
                   <input
                     value={tagInput}
@@ -749,7 +762,7 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
                       if (tagInput.trim()) addTag(tagInput);
                     }}
                     className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    placeholder="输入标签"
+                    placeholder={t('输入标签')}
                     disabled={tags.length >= 5}
                   />
                   <button
@@ -758,7 +771,7 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
                     disabled={tags.length >= 5}
                     className="px-3 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
                   >
-                    添加
+                    {t('添加')}
                   </button>
                 </div>
                 {tagSuggestions.length > 0 && (
@@ -794,10 +807,10 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">上传附件（可选）</label>
+              <label className="block text-sm font-medium text-gray-700">{t('上传附件（可选）')}</label>
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white ${uploading ? 'bg-gray-400' : 'bg-gray-900 hover:bg-gray-800'} cursor-pointer`}>
-                  {uploading ? '上传中...' : '选择文件'}
+                  {uploading ? t('上传中...') : t('选择文件')}
                   <input
                     type="file"
                     multiple
@@ -806,7 +819,7 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
                     onChange={(event) => handleFileUpload(event.target.files)}
                   />
                 </label>
-                <span className="text-xs text-gray-500">支持任意格式，最多 10 个文件，单个 ≤ 100MB</span>
+                <span className="text-xs text-gray-500">{t('支持任意格式，最多 10 个文件，单个 ≤ 100MB')}</span>
               </div>
               {attachments.length > 0 && (
                 <div className="mt-3 space-y-2 text-sm">
@@ -833,7 +846,7 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
                 onChange={(event) => setIsAnonymous(event.target.checked)}
                 className="rounded border-gray-300"
               />
-              匿名提问（仅展示匿名）
+              {t('匿名提问（仅展示匿名）')}
             </label>
 
             <div className="flex gap-3 pt-2">
@@ -842,14 +855,14 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
                 onClick={onClose}
                 className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50"
               >
-                取消
+                {t('取消')}
               </button>
               <button
                 type="submit"
                 disabled={loading || uploading}
                 className="flex-1 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
-                {loading ? '提交中...' : (uploading ? '上传中...' : '发布提问')}
+                {loading ? t('提交中...') : (uploading ? t('上传中...') : t('发布提问'))}
               </button>
             </div>
           </form>
@@ -857,7 +870,4 @@ function CreateQuestionModal({ categories, onClose, onSuccess }: CreateQuestionM
       </div>
     </div>
   );
-}
-
-
-
+}

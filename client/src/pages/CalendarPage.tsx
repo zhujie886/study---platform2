@@ -9,9 +9,11 @@ import { calendarAPI } from '@/services/api';
 import { socketService } from '@/services/socket';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function CalendarPage() {
   const calendarRef = useRef<any>(null);
+  const { lang, t } = useLanguage();
   const [events, setEvents] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -34,19 +36,19 @@ export default function CalendarPage() {
     // WebSocket实时更新
     socketService.onCalendarCreated((event) => {
       setEvents((prev) => [...prev, formatEventForCalendar(event)]);
-      toast.success('日历事件已创建');
+      toast.success(t('日历事件已创建'));
     });
 
     socketService.onCalendarUpdated((event) => {
       setEvents((prev) =>
         prev.map((e) => (e.id === event.id ? formatEventForCalendar(event) : e))
       );
-      toast('日历事件已更新', { icon: '🔄' });
+      toast(t('日历事件已更新'), { icon: '🔄' });
     });
 
     socketService.onCalendarDeleted(({ id }) => {
       setEvents((prev) => prev.filter((e) => e.id !== id));
-      toast('日历事件已删除', { icon: '🗑️' });
+      toast(t('日历事件已删除'), { icon: '🗑️' });
     });
 
     return () => {
@@ -116,20 +118,20 @@ export default function CalendarPage() {
 
   const handleCreateEvent = async () => {
     if (!formData.eventTitle || !formData.startTime || !formData.endTime) {
-      toast.error('请填写必填字段');
+      toast.error(t('请填写必填字段'));
       return;
     }
 
     try {
       await calendarAPI.create(formData);
-      toast.success('日历事件创建成功！');
+      toast.success(t('日历事件创建成功！'));
       setIsModalOpen(false);
       fetchEvents();
     } catch (error: any) {
       if (error.response?.status === 409) {
-        toast.error('时间冲突！该时间段已有其他事件');
+        toast.error(t('时间冲突！该时间段已有其他事件'));
       } else {
-        toast.error('创建失败');
+        toast.error(t('创建失败'));
       }
     }
   };
@@ -139,29 +141,29 @@ export default function CalendarPage() {
 
     try {
       await calendarAPI.update(selectedEvent.id, formData);
-      toast.success('日历事件更新成功！');
+      toast.success(t('日历事件更新成功！'));
       setIsModalOpen(false);
       fetchEvents();
     } catch (error: any) {
       if (error.response?.status === 409) {
-        toast.error('时间冲突！该时间段已有其他事件');
+        toast.error(t('时间冲突！该时间段已有其他事件'));
       } else {
-        toast.error('更新失败');
+        toast.error(t('更新失败'));
       }
     }
   };
 
   const handleDeleteEvent = async () => {
     if (!selectedEvent) return;
-    if (!confirm('确定要删除这个事件吗？')) return;
+    if (!confirm(t('确定要删除这个事件吗？'))) return;
 
     try {
       await calendarAPI.delete(selectedEvent.id);
-      toast.success('删除成功');
+      toast.success(t('删除成功'));
       setIsModalOpen(false);
       fetchEvents();
     } catch (error) {
-      toast.error('删除失败');
+      toast.error(t('删除失败'));
     }
   };
 
@@ -171,13 +173,13 @@ export default function CalendarPage() {
         startTime: info.event.start,
         endTime: info.event.end || info.event.start,
       });
-      toast.success('事件时间已更新');
+      toast.success(t('事件时间已更新'));
     } catch (error: any) {
       info.revert();
       if (error.response?.status === 409) {
-        toast.error('时间冲突！无法移动到该时间段');
+        toast.error(t('时间冲突！无法移动到该时间段'));
       } else {
-        toast.error('更新失败');
+        toast.error(t('更新失败'));
       }
     }
   };
@@ -186,8 +188,8 @@ export default function CalendarPage() {
     <div className="space-y-6">
       {/* 头部 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">日历</h1>
-        <p className="text-gray-600 mt-1">管理您的日程安排和会议</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('日历')}</h1>
+        <p className="text-gray-600 mt-1">{t('管理您的日程安排和会议')}</p>
       </div>
 
       {/* 日历 */}
@@ -202,13 +204,13 @@ export default function CalendarPage() {
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
           }}
           buttonText={{
-            today: '今天',
-            month: '月',
-            week: '周',
-            day: '日',
-            list: '列表',
+            today: t('今天'),
+            month: t('月'),
+            week: t('周'),
+            day: t('日'),
+            list: t('列表'),
           }}
-          locale="zh-cn"
+          locale={lang === 'en' ? 'en' : 'zh-cn'}
           editable={true}
           selectable={true}
           selectMirror={true}
@@ -230,14 +232,14 @@ export default function CalendarPage() {
           <Dialog.Panel className="mx-auto max-w-2xl w-full bg-white rounded-lg shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <Dialog.Title className="text-2xl font-bold text-gray-900 mb-6">
-                {isEditMode ? '编辑事件' : '创建事件'}
+                {isEditMode ? t('编辑事件') : t('创建事件')}
               </Dialog.Title>
 
               <div className="space-y-4">
                 {/* 事件标题 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    事件标题 *
+                    {t('事件标题')} *
                   </label>
                   <input
                     type="text"
@@ -246,14 +248,14 @@ export default function CalendarPage() {
                       setFormData({ ...formData, eventTitle: e.target.value })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    placeholder="输入事件标题..."
+                    placeholder={t('输入事件标题...')}
                   />
                 </div>
 
                 {/* 描述 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    描述
+                    {t('描述')}
                   </label>
                   <textarea
                     value={formData.description}
@@ -262,7 +264,7 @@ export default function CalendarPage() {
                     }
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    placeholder="输入事件描述..."
+                    placeholder={t('输入事件描述...')}
                   />
                 </div>
 
@@ -270,7 +272,7 @@ export default function CalendarPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      开始时间 *
+                      {t('开始时间')} *
                     </label>
                     <input
                       type="datetime-local"
@@ -283,7 +285,7 @@ export default function CalendarPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      结束时间 *
+                      {t('结束时间')} *
                     </label>
                     <input
                       type="datetime-local"
@@ -299,7 +301,7 @@ export default function CalendarPage() {
                 {/* 地点 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    地点
+                    {t('地点')}
                   </label>
                   <input
                     type="text"
@@ -308,14 +310,14 @@ export default function CalendarPage() {
                       setFormData({ ...formData, location: e.target.value })
                     }
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                    placeholder="输入事件地点..."
+                    placeholder={t('输入事件地点...')}
                   />
                 </div>
 
                 {/* 颜色 */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    颜色
+                    {t('颜色')}
                   </label>
                   <div className="flex gap-2">
                     {['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'].map(
@@ -343,7 +345,7 @@ export default function CalendarPage() {
                     }
                     className="w-4 h-4 mr-2"
                   />
-                  <label className="text-sm font-medium text-gray-700">全天事件</label>
+                  <label className="text-sm font-medium text-gray-700">{t('全天事件')}</label>
                 </div>
               </div>
 
@@ -353,21 +355,21 @@ export default function CalendarPage() {
                   onClick={isEditMode ? handleUpdateEvent : handleCreateEvent}
                   className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
                 >
-                  {isEditMode ? '更新' : '创建'}
+                  {isEditMode ? t('更新') : t('创建')}
                 </button>
                 {isEditMode && (
                   <button
                     onClick={handleDeleteEvent}
                     className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
                   >
-                    删除
+                    {t('删除')}
                   </button>
                 )}
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
                 >
-                  取消
+                  {t('取消')}
                 </button>
               </div>
             </div>
@@ -377,6 +379,3 @@ export default function CalendarPage() {
     </div>
   );
 }
-
-
-

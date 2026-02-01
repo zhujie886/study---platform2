@@ -6,6 +6,7 @@ import { ArrowLeftIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outl
 import { HeartIcon } from '@heroicons/react/24/solid';
 import { useAuthStore } from '@/store/authStore';
 import AvailableSlotsPanel from '@/components/AvailableSlotsPanel';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
@@ -50,13 +51,15 @@ type Post = {
   comments?: Comment[];
 };
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString('zh-CN');
+function formatDate(value: string, locale: string) {
+  return new Date(value).toLocaleString(locale);
 }
 
 export default function PostDetailPage() {
   const { id } = useParams();
   const { token } = useAuthStore();
+  const { t, lang } = useLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'zh-CN';
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [commentContent, setCommentContent] = useState('');
@@ -71,8 +74,8 @@ export default function PostDetailPage() {
       });
       setPost(response.data);
     } catch (error) {
-      console.error('加载动态失败', error);
-      toast.error('加载动态失败');
+      console.error(t('post.load_failed'), error);
+      toast.error(t('post.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -87,7 +90,7 @@ export default function PostDetailPage() {
     if (!id) return;
     const trimmed = commentContent.trim();
     if (!trimmed) {
-      toast.error('请输入评论内容');
+      toast.error(t('post.comment_empty'));
       return;
     }
 
@@ -98,12 +101,12 @@ export default function PostDetailPage() {
         { content: trimmed },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      toast.success('评论已发布');
+      toast.success(t('post.comment_success'));
       setCommentContent('');
       await fetchPost();
     } catch (error) {
-      console.error('评论失败', error);
-      toast.error('评论失败');
+      console.error(t('post.comment_failed'), error);
+      toast.error(t('post.comment_failed'));
     } finally {
       setSubmitting(false);
     }
@@ -114,7 +117,7 @@ export default function PostDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
-          <p className="mt-4 text-gray-500">加载中...</p>
+          <p className="mt-4 text-gray-500">{t('post.loading')}</p>
         </div>
       </div>
     );
@@ -124,10 +127,10 @@ export default function PostDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <p className="text-gray-600">没有找到这条动态</p>
+          <p className="text-gray-600">{t('post.not_found')}</p>
           <Link to="/social" className="mt-4 inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm relative z-10">
             <ArrowLeftIcon className="w-4 h-4" />
-            返回动态广场
+            {t('post.back_to_social')}
           </Link>
         </div>
       </div>
@@ -139,7 +142,7 @@ export default function PostDetailPage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <Link to="/social" className="inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm relative z-10">
           <ArrowLeftIcon className="w-4 h-4" />
-          返回动态广场
+          {t('post.back_to_social')}
         </Link>
 
         <div className="mt-4 bg-white rounded-2xl border border-gray-200 p-6">
@@ -157,11 +160,11 @@ export default function PostDetailPage() {
                 <span className="font-medium text-gray-900">{post.user.username}</span>
                 {post.user.isVerified && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
-                    已认证
+                    {t('post.verified')}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
+              <p className="text-sm text-gray-500">{formatDate(post.createdAt, locale)}</p>
             </div>
           </div>
 
@@ -170,16 +173,18 @@ export default function PostDetailPage() {
           )}
 
           {post.images && post.images.length > 0 && (
-            <div className={`grid gap-2 mb-4 ${
-              post.images.length === 1 ? 'grid-cols-1' :
-              post.images.length === 2 ? 'grid-cols-2' :
-              'grid-cols-3'
-            }`}>
+            <div
+              className={`grid gap-2 mb-4 ${
+                post.images.length === 1 ? 'grid-cols-1' :
+                post.images.length === 2 ? 'grid-cols-2' :
+                'grid-cols-3'
+              }`}
+            >
               {post.images.map((img, idx) => (
                 <img
                   key={idx}
                   src={resolveAssetUrl(img)}
-                  alt={`图片 ${idx + 1}`}
+                  alt={t('post.image_alt', { count: idx + 1 })}
                   className="w-full h-48 object-cover rounded-xl"
                   onError={(event) => {
                     event.currentTarget.style.display = 'none';
@@ -217,24 +222,24 @@ export default function PostDetailPage() {
               <ChatBubbleLeftRightIcon className="w-4 h-4 text-blue-500" />
               {post.commentCount}
             </span>
-            <span>浏览 {post.viewCount}</span>
+            <span>{t('post.view_count', { count: post.viewCount })}</span>
           </div>
         </div>
 
         <AvailableSlotsPanel
           userId={post.user?.id}
-          title="发布者可预约时间"
+          title={t('post.slots_title')}
         />
 
         <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900">发表评论</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('post.comment_title')}</h2>
           <form onSubmit={handleCommentSubmit} className="mt-4 space-y-4">
             <textarea
               value={commentContent}
               onChange={(event) => setCommentContent(event.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 resize-none"
               rows={4}
-              placeholder="写下你的评论..."
+              placeholder={t('post.comment_placeholder')}
               required
             />
             <button
@@ -242,15 +247,15 @@ export default function PostDetailPage() {
               disabled={submitting}
               className="w-full md:w-auto px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
-              {submitting ? '提交中...' : '提交评论'}
+              {submitting ? t('post.submitting') : t('post.submit_comment')}
             </button>
           </form>
         </div>
 
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">全部评论</h2>
-            <span className="text-sm text-gray-500">{post.comments?.length || 0} 条</span>
+            <h2 className="text-lg font-semibold text-gray-900">{t('post.comments_title')}</h2>
+            <span className="text-sm text-gray-500">{t('post.count_label', { count: post.comments?.length || 0 })}</span>
           </div>
 
           {post.comments && post.comments.length > 0 ? (
@@ -267,7 +272,7 @@ export default function PostDetailPage() {
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">{comment.user?.username}</div>
-                    <div className="text-xs text-gray-400">{formatDate(comment.createdAt)}</div>
+                    <div className="text-xs text-gray-400">{formatDate(comment.createdAt, locale)}</div>
                   </div>
                 </div>
                 <p className="text-gray-700 whitespace-pre-wrap">{comment.content}</p>
@@ -275,7 +280,7 @@ export default function PostDetailPage() {
             ))
           ) : (
             <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center text-gray-500">
-              暂无评论，来做第一个评论的人吧
+              {t('post.no_comments')}
             </div>
           )}
         </div>

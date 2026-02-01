@@ -3,10 +3,12 @@
 import { motion } from 'framer-motion';
 
 import confetti from 'canvas-confetti';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 
 
 export const HabitTree = ({ onClose }: { onClose: () => void }) => {
+  const { t } = useLanguage();
 
   const [level, setLevel] = useState(1); // 1-7
 
@@ -68,7 +70,7 @@ export const HabitTree = ({ onClose }: { onClose: () => void }) => {
 
       // 补签逻辑
 
-      alert("浇水成功！补回了一片叶子~ (补签功能模拟)");
+      alert(t('habitTree.water.success'));
   };
 
 
@@ -84,9 +86,9 @@ export const HabitTree = ({ onClose }: { onClose: () => void }) => {
 
       <div className="absolute top-6 left-6 z-10">
 
-          <h3 className="text-emerald-800 font-bold text-lg">习惯养成树</h3>
+          <h3 className="text-emerald-800 font-bold text-lg">{t('habitTree.title')}</h3>
 
-          <p className="text-emerald-600/70 text-xs">坚持运动 · 第 {level} 天</p>
+          <p className="text-emerald-600/70 text-xs">{t('habitTree.subtitle', { level })}</p>
       </div>
 
 
@@ -102,7 +104,7 @@ export const HabitTree = ({ onClose }: { onClose: () => void }) => {
             className="absolute top-10 right-8 text-5xl opacity-80"
         >
 
-            日
+            {t('habitTree.sun')}
         </motion.div>
 
 
@@ -117,7 +119,7 @@ export const HabitTree = ({ onClose }: { onClose: () => void }) => {
 
                 <div className="w-20 h-2 bg-[#5d4037] absolute top-2 rounded-full opacity-20" />
 
-                <span className="text-2xl">芽</span>
+                <span className="text-2xl">{t('habitTree.sprout')}</span>
             </div>
 
 
@@ -160,7 +162,7 @@ export const HabitTree = ({ onClose }: { onClose: () => void }) => {
 
                     >
 
-                        {i === 6 ? '花' : '叶'}
+                        {i === 6 ? t('habitTree.flower') : t('habitTree.leaf')}
                     </motion.div>
 
                 ))}
@@ -187,10 +189,16 @@ export const HabitTree = ({ onClose }: { onClose: () => void }) => {
 
         >
 
-            {checkedToday ? <span>今日已打卡</span> : <span>打卡长叶子</span>}
+            {checkedToday ? <span>{t('habitTree.checked')}</span> : <span>{t('habitTree.checkin')}</span>}
         </button>
 
-        <button onClick={water} className="w-12 bg-blue-100 text-blue-500 rounded-2xl hover:bg-blue-200 flex items-center justify-center shadow-sm" title="补签">补</button>
+        <button
+          onClick={water}
+          className="w-12 bg-blue-100 text-blue-500 rounded-2xl hover:bg-blue-200 flex items-center justify-center shadow-sm"
+          title={t('habitTree.water')}
+        >
+          {t('habitTree.water_short')}
+        </button>
 
       </div>
 

@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import {
   DocumentTextIcon,
@@ -14,11 +14,13 @@ import { socketService } from '@/services/socket';
 import RichTextEditor from '@/components/RichTextEditor';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const stripHtml = (html: string) => html.replace(/<[^>]+>/g, '');
 
 export default function MemoPage() {
   const { memos, fetchMemos, createMemo, updateMemo, deleteMemo, searchMemos } = useMemoStore();
+  const { t } = useLanguage();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,11 +39,11 @@ export default function MemoPage() {
 
   useEffect(() => {
     fetchMemos();
-    socketService.onMemoCreated(() => toast.success('新备忘录已创建'));
-    socketService.onMemoUpdated(() => toast('备忘录已更新', { icon: '✅' }));
-    socketService.onMemoDeleted(() => toast('备忘录已删除', { icon: '🗑️' }));
+    socketService.onMemoCreated(() => toast.success(t('备忘录已创建'), { icon: '✅' }));
+    socketService.onMemoUpdated(() => toast(t('备忘录已更新'), { icon: '✏️' }));
+    socketService.onMemoDeleted(() => toast(t('备忘录已删除'), { icon: '🗑️' }));
     return () => { socketService.removeAllListeners(); };
-  }, [fetchMemos]);
+  }, [fetchMemos, t]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -50,30 +52,26 @@ export default function MemoPage() {
 
   const handleCreate = async () => {
     if (!formData.title || !formData.content) {
-      toast.error('请填写标题和内容');
+      toast.error(t('请填写标题和内容'));
       return;
     }
 
     try {
-      // 🔥 修复：构造干净的数据发送给后端
+      // ? ???????????????
       const memoData = {
         ...formData,
-        // 1. 数组直接发，不要 stringify
         labels: formData.labels,
-        // 2. 确保优先级是数字
         priority: Number(formData.priority),
-        // 3. 日期处理：如果有值则发，无值发 null
         reminderTime: formData.reminderTime ? new Date(formData.reminderTime).toISOString() : null
       };
 
       await createMemo(memoData);
-      toast.success('备忘录创建成功！');
+      toast.success(t('备忘录创建成功'));
       setIsCreateModalOpen(false);
       resetForm();
-      // fetchMemos(); // Store 通常会自动更新，或者通过 socket 更新
     } catch (error: any) {
-      console.error('创建失败详情:', error);
-      const msg = error.response?.data?.details || error.response?.data?.error || '创建失败';
+      console.error('创建备忘录失败:', error);
+      const msg = error.response?.data?.details || error.response?.data?.error || t('创建失败');
       toast.error(msg);
     }
   };
@@ -88,21 +86,21 @@ export default function MemoPage() {
         reminderTime: formData.reminderTime ? new Date(formData.reminderTime).toISOString() : null
       };
       await updateMemo(selectedMemo.id, memoData);
-      toast.success('备忘录更新成功！');
+      toast.success(t('备忘录已更新'));
       setIsEditModalOpen(false);
       resetForm();
     } catch (error: any) {
-      toast.error('更新失败');
+      toast.error(t('更新失败'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('确定要删除这个备忘录吗？')) return;
+    if (!confirm(t('确定要删除该备忘录吗？'))) return;
     try {
       await deleteMemo(id);
-      toast.success('删除成功');
+      toast.success(t('删除成功'));
     } catch (error) {
-      toast.error('删除失败');
+      toast.error(t('删除失败'));
     }
   };
 
@@ -149,15 +147,15 @@ export default function MemoPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">备忘录</h1>
-          <p className="text-gray-600 mt-1">管理您的笔记和待办事项</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('备忘录')}</h1>
+          <p className="text-gray-600 mt-1">{t('管理你的笔记和待办事项')}</p>
         </div>
           <button
             onClick={() => setIsCreateModalOpen(true)}
             className="flex items-center px-4 py-2 rounded-lg btn-soft"
           >
             <PlusIcon className="w-5 h-5 mr-2" />
-            新建备忘录
+            {t('新建备忘录')}
           </button>
       </div>
 
@@ -166,7 +164,7 @@ export default function MemoPage() {
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
-            placeholder="搜索备忘录..."
+            placeholder={t('搜索备忘录...')}
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -178,12 +176,12 @@ export default function MemoPage() {
         {(!memos || memos.length === 0) ? (
           <div className="col-span-full text-center py-12">
             <DocumentTextIcon className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500 text-lg mb-4">还没有备忘录</p>
+            <p className="text-gray-500 text-lg mb-4">{t('暂无备忘录')}</p>
               <button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="px-4 py-2 rounded-lg btn-soft"
               >
-                创建第一个备忘录
+                {t('创建备忘录')}
               </button>
           </div>
         ) : (
@@ -209,8 +207,8 @@ export default function MemoPage() {
             </div>
             <p className="text-sm text-gray-600 mb-3 line-clamp-3">
               {memo.isEncrypted
-                ? '🔒 加密内容'
-                : (stripHtml(memo.content || '') || '当前没有内容')}
+                ? t('内容已加密')
+                : (stripHtml(memo.content || '') || t('暂无内容...'))}
             </p>
             <div className="flex flex-wrap gap-2 mb-3">
               {Array.isArray(memo.labels) && memo.labels.map((label) => (
@@ -231,7 +229,7 @@ export default function MemoPage() {
       <MemoModal
         isOpen={isCreateModalOpen || isEditModalOpen}
         onClose={() => { setIsCreateModalOpen(false); setIsEditModalOpen(false); resetForm(); }}
-        title={isEditModalOpen ? '编辑备忘录' : '新建备忘录'}
+        title={isEditModalOpen ? t('编辑备忘录') : t('新建备忘录')}
         formData={formData}
         setFormData={setFormData}
         onSubmit={isEditModalOpen ? handleEdit : handleCreate}
@@ -244,6 +242,7 @@ export default function MemoPage() {
 
 function MemoModal({ isOpen, onClose, title, formData, setFormData, onSubmit, addLabel, removeLabel }: any) {
   const [labelInput, setLabelInput] = useState('');
+  const { t } = useLanguage();
   const handleAddLabel = () => { if (labelInput.trim()) { addLabel(labelInput.trim()); setLabelInput(''); } };
 
   return (
@@ -255,45 +254,48 @@ function MemoModal({ isOpen, onClose, title, formData, setFormData, onSubmit, ad
             <Dialog.Title className="text-2xl font-bold text-gray-900 mb-6">{title}</Dialog.Title>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">标题</label>
-                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="输入标题..." />
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('标题')}</label>
+                <input type="text" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder={t('请输入标题...')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">内容</label>
-                <RichTextEditor content={formData.content} onChange={(content) => setFormData({ ...formData, content })} placeholder="开始输入..." />
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('内容')}</label>
+                <RichTextEditor content={formData.content} onChange={(content) => setFormData({ ...formData, content })} placeholder={t('请输入内容...')} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">标签</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('标签')}</label>
                 <div className="flex gap-2 mb-2">
-                  <input type="text" value={labelInput} onChange={(e) => setLabelInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddLabel()} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder="添加标签..." />
-                  <button onClick={handleAddLabel} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">添加</button>
+                  <input type="text" value={labelInput} onChange={(e) => setLabelInput(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddLabel()} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg" placeholder={t('输入标签...')} />
+                  <button onClick={handleAddLabel} className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg">{t('添加')}</button>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {formData.labels.map((label: string) => (
-                    <span key={label} className="px-3 py-1 bg-primary-100 text-primary-700 rounded-lg flex items-center gap-2">{label}<button onClick={() => removeLabel(label)} className="text-primary-600 hover:text-primary-800">×</button></span>
+                    <span key={label} className="px-3 py-1 bg-primary-100 text-primary-700 rounded-lg flex items-center gap-2">
+                      {label}
+                      <button onClick={() => removeLabel(label)} className="text-primary-600 hover:text-primary-800">×</button>
+                    </span>
                   ))}
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">提醒时间</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">{t('提醒时间')}</label>
                 <input type="datetime-local" value={formData.reminderTime} onChange={(e) => setFormData({ ...formData, reminderTime: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
               </div>
               <div className="flex items-center gap-4">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={formData.isEncrypted} onChange={(e) => setFormData({ ...formData, isEncrypted: e.target.checked })} className="w-4 h-4" />
-                  <span className="text-sm font-medium text-gray-700">加密此备忘录</span>
+                  <span className="text-sm font-medium text-gray-700">{t('加密此备忘录')}</span>
                 </label>
               </div>
               {formData.isEncrypted && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">加密密码</label>
-                  <input type="password" value={formData.encryptionPassword} onChange={(e) => setFormData({ ...formData, encryptionPassword: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder="设置加密密码..." />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('加密密码')}</label>
+                  <input type="password" value={formData.encryptionPassword} onChange={(e) => setFormData({ ...formData, encryptionPassword: e.target.value })} className="w-full px-4 py-2 border border-gray-300 rounded-lg" placeholder={t('请输入加密密码...')} />
                 </div>
               )}
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={onSubmit} className="flex-1 px-4 py-2 rounded-lg btn-soft">保存</button>
-              <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">取消</button>
+              <button onClick={onSubmit} className="flex-1 px-4 py-2 rounded-lg btn-soft">{t('保存')}</button>
+              <button onClick={onClose} className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">{t('取消')}</button>
             </div>
           </div>
         </Dialog.Panel>
@@ -301,5 +303,3 @@ function MemoModal({ isOpen, onClose, title, formData, setFormData, onSubmit, ad
     </Dialog>
   );
 }
-
-

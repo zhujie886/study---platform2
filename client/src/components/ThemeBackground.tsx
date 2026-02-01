@@ -13,22 +13,22 @@ export default function ThemeBackground() {
   const simpleGlow = (
     <>
       <div
-        className="absolute inset-0 opacity-70"
+        className="absolute inset-0 opacity-70 perf-layer"
         style={{
           background:
             'linear-gradient(120deg, var(--theme-aurora-1) 0%, var(--theme-aurora-2) 45%, var(--theme-aurora-3) 100%)',
         }}
       />
       <div
-        className="absolute -top-[10%] -left-[10%] w-[55vw] h-[55vw] rounded-full blur-[120px] opacity-50"
+        className="absolute -top-[10%] -left-[10%] w-[55vw] h-[55vw] rounded-full blur-[120px] opacity-50 perf-layer"
         style={{ backgroundColor: 'var(--theme-glow-1)' }}
       />
       <div
-        className="absolute top-[10%] right-[-15%] w-[50vw] h-[50vw] rounded-full blur-[120px] opacity-40"
+        className="absolute top-[10%] right-[-15%] w-[50vw] h-[50vw] rounded-full blur-[120px] opacity-40 perf-layer"
         style={{ backgroundColor: 'var(--theme-glow-2)' }}
       />
       <div
-        className="absolute bottom-[-20%] left-[15%] w-[60vw] h-[60vw] rounded-full blur-[140px] opacity-40"
+        className="absolute bottom-[-20%] left-[15%] w-[60vw] h-[60vw] rounded-full blur-[140px] opacity-40 perf-layer"
         style={{ backgroundColor: 'var(--theme-glow-3)' }}
       />
     </>
@@ -44,15 +44,15 @@ export default function ThemeBackground() {
         }}
       />
       <div
-        className="absolute -top-[15%] -left-[12%] w-[60vw] h-[60vw] rounded-full blur-[140px] opacity-60 mix-blend-screen animate-float"
+        className="absolute -top-[15%] -left-[12%] w-[60vw] h-[60vw] rounded-full blur-[140px] opacity-60 mix-blend-screen animate-float perf-layer"
         style={{ backgroundColor: 'var(--theme-glow-1)' }}
       />
       <div
-        className="absolute top-[5%] right-[-10%] w-[52vw] h-[52vw] rounded-full blur-[130px] opacity-50 mix-blend-screen"
+        className="absolute top-[5%] right-[-10%] w-[52vw] h-[52vw] rounded-full blur-[130px] opacity-50 mix-blend-screen perf-layer"
         style={{ backgroundColor: 'var(--theme-glow-2)' }}
       />
       <div
-        className="absolute bottom-[-25%] left-[18%] w-[70vw] h-[70vw] rounded-full blur-[160px] opacity-40 mix-blend-screen animate-pulse-slow"
+        className="absolute bottom-[-25%] left-[18%] w-[70vw] h-[70vw] rounded-full blur-[160px] opacity-40 mix-blend-screen animate-pulse-slow perf-layer"
         style={{ backgroundColor: 'var(--theme-glow-3)' }}
       />
     </>
@@ -90,7 +90,7 @@ export default function ThemeBackground() {
           }}
         />
         <div
-          className="absolute -top-[25%] left-[25%] w-[70vw] h-[70vw] blur-[200px] mix-blend-screen"
+          className="absolute -top-[25%] left-[25%] w-[70vw] h-[70vw] blur-[200px] mix-blend-screen perf-layer"
           style={{
             opacity: isLight ? 0.2 : 0.3,
             background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 60%)',
@@ -137,7 +137,7 @@ export default function ThemeBackground() {
 
         {/* 顶部圣光 */}
 
-        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[100vw] h-[60vw] bg-yellow-100 blur-[120px] opacity-40" />
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[100vw] h-[60vw] bg-yellow-100 blur-[120px] opacity-40 perf-layer" />
 
         {/* 底部阴影 */}
 
@@ -225,7 +225,7 @@ export default function ThemeBackground() {
 
         {richGlow}
 
-        <div className="absolute top-[-10%] left-[-10%] w-[70vw] h-[70vw] bg-pink-300 rounded-full blur-[120px] opacity-40 animate-pulse-slow" />
+        <div className="absolute top-[-10%] left-[-10%] w-[70vw] h-[70vw] bg-pink-300 rounded-full blur-[120px] opacity-40 animate-pulse-slow perf-layer" />
 
         <div className="absolute bottom-[-20%] right-[-20%] w-[80vw] h-[80vw] bg-rose-200 rounded-full blur-[150px] opacity-30" />
 

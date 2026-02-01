@@ -10,6 +10,7 @@ import { HabitTree } from './personalization/HabitTree';
 import { TimeCapsule } from './personalization/TimeCapsule';
 import { NoteWidget } from './personalization/NoteWidget';
 import { DoodleNote } from './personalization/DoodleNote';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Pos = { x: number; y: number };
 type Photo = { id: number; src: string; x: number; y: number };
@@ -139,6 +140,7 @@ const DraggablePendant = ({ item, onDelete }: { item: Pendant; onDelete: (id: nu
 );
 
 export const MagicDock: React.FC = () => {
+  const { t } = useLanguage();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [stickers, setStickers] = useState<Sticker[]>([]);
   const [pendants, setPendants] = useState<Pendant[]>([]);
@@ -342,19 +344,19 @@ export const MagicDock: React.FC = () => {
         style={{ position: 'fixed', left: '40%', bottom: '30px', zIndex: 9999 }}
         className="flex items-center gap-4 p-3 px-8 bg-white/70 backdrop-blur-3xl border border-white/60 shadow-[0_30px_80px_-15px_rgba(0,0,0,0.15),0_0_20px_rgba(255,255,255,0.5)_inset] rounded-[2.5rem] cursor-grab active:cursor-grabbing"
       >
-        <DockItem emoji="🖼️" label="贴照片" onClick={() => fileInputRef.current?.click()} />
-        <DockItem emoji="🏷️" label="贴纸" onClick={() => setShowStickerCenter(true)} />
-        <DockItem emoji="🎐" label="挂件" onClick={() => setShowPendantCenter(true)} />
-        <DockItem emoji="🏆" label="成就墙" onClick={() => setShowAchievement(true)} />
-        <DockItem emoji="🌦️" label="天气瓶" onClick={() => setShowMood(true)} />
-        <DockItem emoji="🌳" label="习惯树" onClick={() => setShowHabit(true)} />
-        <DockItem emoji="⌛" label="时光胶囊" onClick={() => setShowCapsule(true)} />
-        <DockItem emoji="📝" label="便签" onClick={() => setShowNote(true)} />
-        <DockItem emoji="🎨" label="涂鸦" onClick={() => setShowDoodle(true)} />
+        <DockItem emoji="🖼️" label={t('贴照片')} onClick={() => fileInputRef.current?.click()} />
+        <DockItem emoji="🏷️" label={t('贴纸')} onClick={() => setShowStickerCenter(true)} />
+        <DockItem emoji="🎐" label={t('pendant.label')} onClick={() => setShowPendantCenter(true)} />
+        <DockItem emoji="🏆" label={t('成就墙')} onClick={() => setShowAchievement(true)} />
+        <DockItem emoji="🌦️" label={t('天气瓶')} onClick={() => setShowMood(true)} />
+        <DockItem emoji="🌳" label={t('习惯树')} onClick={() => setShowHabit(true)} />
+        <DockItem emoji="⌛" label={t('时光胶囊')} onClick={() => setShowCapsule(true)} />
+        <DockItem emoji="📝" label={t('便签')} onClick={() => setShowNote(true)} />
+        <DockItem emoji="🎨" label={t('涂鸦')} onClick={() => setShowDoodle(true)} />
         <Divider />
-        <DockItem emoji="⏰" label="倒计时" onClick={() => setShowCountdown(true)} />
-        <DockItem emoji="🔮" label="求签" onClick={() => setShowFortune(true)} />
-        <DockItem emoji="🧹" label="清空" onClick={clearAllWidgets} />
+        <DockItem emoji="⏰" label={t('倒计时')} onClick={() => setShowCountdown(true)} />
+        <DockItem emoji="🔮" label={t('求签')} onClick={() => setShowFortune(true)} />
+        <DockItem emoji="🧹" label={t('清空')} onClick={clearAllWidgets} />
       </motion.div>
 
       <AnimatePresence>
@@ -362,7 +364,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-countdown" initialX={countdownPos.x} initialY={countdownPos.y} onSave={(_, pos) => { setCountdownPos(pos); savePos('countdown', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-5 border border-white/50 min-w-[280px]">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-bold text-slate-700 ml-1">⏰ 倒计时</span>
+                <span className="text-base font-bold text-slate-700 ml-1">⏰ {t('倒计时')}</span>
                 <button onClick={() => setShowCountdown(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <CountdownWidget target={new Date().toISOString()} minimal={false} />
@@ -376,7 +378,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-fortune" initialX={fortunePos.x} initialY={fortunePos.y} onSave={(_, pos) => { setFortunePos(pos); savePos('fortune', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-5 border border-white/50 min-w-[280px]">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-bold text-slate-700 ml-1">🔮 今日运势</span>
+                <span className="text-base font-bold text-slate-700 ml-1">🔮 {t('今日运势')}</span>
                 <button onClick={() => setShowFortune(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <FortuneWidget />
@@ -390,7 +392,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-sticker" initialX={stickerPos.x} initialY={stickerPos.y} onSave={(_, pos) => { setStickerPos(pos); savePos('sticker', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-6 border border-white/50 min-w-[320px]">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-base font-bold text-slate-700 ml-1">🏷️ 贴纸中心</span>
+                <span className="text-base font-bold text-slate-700 ml-1">🏷️ {t('贴纸中心')}</span>
                 <button onClick={() => setShowStickerCenter(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <div className="grid grid-cols-3 gap-4">
@@ -404,7 +406,7 @@ export const MagicDock: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-center text-[10px] text-slate-400">点击添加到画面</div>
+              <div className="mt-4 text-center text-[10px] text-slate-400">{t('点击添加到画面')}</div>
             </motion.div>
           </DraggableWindow>
         )}
@@ -415,21 +417,21 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-pendant" initialX={pendantPos.x} initialY={pendantPos.y} onSave={(_, pos) => { setPendantPos(pos); savePos('pendant', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-6 border border-white/50 min-w-[320px]">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-base font-bold text-slate-700 ml-1">🎐 挂件中心</span>
+                <span className="text-base font-bold text-slate-700 ml-1">🎐 {t('pendant.center.title')}</span>
                 <button onClick={() => setShowPendantCenter(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                {['心愿挂件', '天空挂件', '宠物挂件', '风铃挂件'].map((item) => (
+                {['pendant.item.wish', 'pendant.item.sky', 'pendant.item.pet', 'pendant.item.wind'].map((itemKey) => (
                   <div
-                    key={item}
-                    onClick={() => addPendant(item)}
+                    key={itemKey}
+                    onClick={() => addPendant(t(itemKey))}
                     className="p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-lg transition-all cursor-pointer text-center text-sm text-slate-600 font-bold active:scale-95 hover:border-slate-300"
                   >
-                    {item}
+                    {t(itemKey)}
                   </div>
                 ))}
               </div>
-              <div className="mt-4 text-center text-[10px] text-slate-400">点击挂件放置到屏幕</div>
+              <div className="mt-4 text-center text-[10px] text-slate-400">{t('pendant.hint.place')}</div>
             </motion.div>
           </DraggableWindow>
         )}
@@ -458,7 +460,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-mood" initialX={moodPos.x} initialY={moodPos.y} onSave={(_, pos) => { setMoodPos(pos); savePos('mood', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-4 border border-white/50 min-w-[320px]">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-bold text-slate-700 ml-1">🌦️ 天气瓶</span>
+                <span className="text-base font-bold text-slate-700 ml-1">🌦️ {t('天气瓶')}</span>
                 <button onClick={() => setShowMood(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <MoodBottle onClose={() => setShowMood(false)} />
@@ -472,7 +474,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-habit" initialX={habitPos.x} initialY={habitPos.y} onSave={(_, pos) => { setHabitPos(pos); savePos('habit', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-4 border border-white/50 min-w-[340px]">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-bold text-slate-700 ml-1">🌳 习惯树</span>
+                <span className="text-base font-bold text-slate-700 ml-1">🌳 {t('习惯树')}</span>
                 <button onClick={() => setShowHabit(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <HabitTree onClose={() => setShowHabit(false)} />
@@ -486,7 +488,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-capsule" initialX={capsulePos.x} initialY={capsulePos.y} onSave={(_, pos) => { setCapsulePos(pos); savePos('capsule', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-4 border border-white/50 min-w-[340px]">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-bold text-slate-700 ml-1">⌛ 时光胶囊</span>
+                <span className="text-base font-bold text-slate-700 ml-1">⌛ {t('时光胶囊')}</span>
                 <button onClick={() => setShowCapsule(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <TimeCapsule onClose={() => setShowCapsule(false)} />
@@ -500,7 +502,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-note" initialX={notePos.x} initialY={notePos.y} onSave={(_, pos) => { setNotePos(pos); savePos('note', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-4 border border-white/50 min-w-[280px]">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-bold text-slate-700 ml-1">📝 便签</span>
+                <span className="text-base font-bold text-slate-700 ml-1">📝 {t('便签')}</span>
                 <button onClick={() => setShowNote(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <NoteWidget />
@@ -514,7 +516,7 @@ export const MagicDock: React.FC = () => {
           <DraggableWindow id="dock-doodle" initialX={doodlePos.x} initialY={doodlePos.y} onSave={(_, pos) => { setDoodlePos(pos); savePos('doodle', pos); }} zIndex={9999}>
             <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.85, opacity: 0 }} className="bg-white/85 backdrop-blur-xl shadow-2xl rounded-[2rem] p-4 border border-white/50 min-w-[320px]">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-base font-bold text-slate-700 ml-1">🎨 涂鸦</span>
+                <span className="text-base font-bold text-slate-700 ml-1">🎨 {t('涂鸦')}</span>
                 <button onClick={() => setShowDoodle(false)} className="w-7 h-7 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 flex items-center justify-center transition-colors">×</button>
               </div>
               <DoodleNote onClose={() => setShowDoodle(false)} />

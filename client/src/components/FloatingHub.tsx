@@ -35,11 +35,11 @@ export default function FloatingHub() {
   const filteredThemes = useMemo(() => themes.filter((t) => t.type === (styleMode === 'fancy' ? 'gorgeous' : 'simple')), [styleMode]);
 
   const frames = [
-    { id: 'none', name: '无边框', style: { border: '2px solid rgba(255,255,255,0.3)' } },
-    { id: 'gold', name: '金色', style: { border: '3px solid #f59e0b', boxShadow: '0 0 10px #fbbf24' } },
-    { id: 'pink', name: '樱粉', style: { border: '3px solid #f472b6', boxShadow: '0 0 10px #f472b6' } },
-    { id: 'blue', name: '霓虹', style: { border: '3px solid #38bdf8', boxShadow: '0 0 10px #38bdf8' } },
-    { id: 'green', name: '薄荷', style: { border: '3px solid #22c55e', boxShadow: '0 0 10px #22c55e' } },
+    { id: 'none', name: t('hub.frame.none'), style: { border: '2px solid rgba(255,255,255,0.3)' } },
+    { id: 'gold', name: t('hub.frame.gold'), style: { border: '3px solid #f59e0b', boxShadow: '0 0 10px #fbbf24' } },
+    { id: 'pink', name: t('hub.frame.pink'), style: { border: '3px solid #f472b6', boxShadow: '0 0 10px #f472b6' } },
+    { id: 'blue', name: t('hub.frame.neon'), style: { border: '3px solid #38bdf8', boxShadow: '0 0 10px #38bdf8' } },
+    { id: 'green', name: t('hub.frame.mint'), style: { border: '3px solid #22c55e', boxShadow: '0 0 10px #22c55e' } },
   ];
 
   const snapToEdge = () => {

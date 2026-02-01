@@ -4,19 +4,20 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/authStore';
 import { orderAPI } from '@/services/api_extended';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const READY_WINDOW_MINUTES = 10;
 
-const STATUS_LABELS: Record<string, string> = {
-  pending_payment: '待支付',
-  paid: '已支付',
-  ready: '待开始',
-  in_progress: '进行中',
-  completed: '已完成',
-  cancelled: '已取消',
-  refunded: '已退款',
-  refunding: '退款中',
-  dispute: '纠纷中',
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  pending_payment: 'booking.services.status.pending_payment',
+  paid: 'booking.services.status.paid',
+  ready: 'booking.services.status.ready',
+  in_progress: 'booking.services.status.in_progress',
+  completed: 'booking.services.status.completed',
+  cancelled: 'booking.services.status.cancelled',
+  refunded: 'booking.services.status.refunded',
+  refunding: 'booking.services.status.refunding',
+  dispute: 'booking.services.status.dispute',
 };
 
 const STATUS_BADGE: Record<string, string> = {
@@ -62,24 +63,32 @@ const deriveDisplayStatus = (booking: any) => {
   return 'paid';
 };
 
-const formatTime = (value?: string) => (value ? new Date(value).toLocaleString('zh-CN') : '-');
+const formatTime = (value?: string, locale = 'zh-CN') =>
+  value ? new Date(value).toLocaleString(locale) : '-';
 
-const buildTimeline = (booking: any) => {
+const buildTimeline = (booking: any, t: (key: string, vars?: Record<string, string | number>) => string) => {
   const items = [
-    { label: '创建订单', time: booking.createdAt },
+    { label: t('booking.services.timeline.created'), time: booking.createdAt },
   ];
-  if (booking.payment?.paidAt) items.push({ label: '完成支付', time: booking.payment.paidAt });
-  if (booking.startAt) items.push({ label: '预约开始', time: booking.startAt });
-  if (booking.startedAt) items.push({ label: '会议开始', time: booking.startedAt });
-  if (booking.completedAt) items.push({ label: '会议结束', time: booking.completedAt });
-  if (booking.cancelReason) items.push({ label: '订单取消', time: booking.updatedAt });
-  if (booking.refundAmount && booking.refundAmount > 0) items.push({ label: `退款 ¥${booking.refundAmount}`, time: booking.updatedAt });
+  if (booking.payment?.paidAt) items.push({ label: t('booking.services.timeline.paid'), time: booking.payment.paidAt });
+  if (booking.startAt) items.push({ label: t('booking.services.timeline.start'), time: booking.startAt });
+  if (booking.startedAt) items.push({ label: t('booking.services.timeline.meeting_start'), time: booking.startedAt });
+  if (booking.completedAt) items.push({ label: t('booking.services.timeline.meeting_end'), time: booking.completedAt });
+  if (booking.cancelReason) items.push({ label: t('booking.services.timeline.cancelled'), time: booking.updatedAt });
+  if (booking.refundAmount && booking.refundAmount > 0) {
+    items.push({
+      label: t('booking.services.timeline.refund_amount', { amount: booking.refundAmount }),
+      time: booking.updatedAt
+    });
+  }
   return items;
 };
 
 export default function ServiceBookingPage() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
+  const { t, lang } = useLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'zh-CN';
   const [bookings, setBookings] = useState<any[]>([]);
   const [filter, setFilter] = useState<{
     role: 'all' | 'requester' | 'consultant';
@@ -96,7 +105,7 @@ export default function ServiceBookingPage() {
       setBookings(res.data);
       setSelectedIds([]);
     } catch (e: any) {
-      toast.error(e.message || '加载失败');
+      toast.error(e.message || t('booking.services.load_failed'));
     }
   };
 
@@ -140,54 +149,54 @@ export default function ServiceBookingPage() {
 
   const submitReschedule = async (b: any) => {
     if (!rescheduleValue) {
-      toast.error('请选择改期时间');
+      toast.error(t('booking.services.reschedule.pick_time'));
       return;
     }
     try {
       await orderAPI.rescheduleBooking(b.id, new Date(rescheduleValue).toISOString());
-      toast.success('改期已提交');
+      toast.success(t('booking.services.reschedule.submitted'));
       setRescheduleTarget(null);
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || '改期失败');
+      toast.error(e?.response?.data?.error || t('booking.services.reschedule.failed'));
     }
   };
 
   const cancelBooking = async (b: any) => {
-    const reason = window.prompt('取消原因（可选）', '') || undefined;
+    const reason = window.prompt(t('booking.services.cancel.prompt_reason'), '') || undefined;
     try {
       await orderAPI.cancelBooking(b.id, reason);
-      toast.success('订单已取消');
+      toast.success(t('booking.services.cancel.success'));
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || '取消失败');
+      toast.error(e?.response?.data?.error || t('booking.services.cancel.failed'));
     }
   };
 
   const startMeeting = async (b: any) => {
     try {
       await orderAPI.startMeeting(b.id);
-      toast.success('会议已开始');
+      toast.success(t('booking.services.meeting.started'));
       navigate(`/video/${b.roomId}`);
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || '开始会议失败');
+      toast.error(e?.response?.data?.error || t('booking.services.meeting.start_failed'));
     }
   };
 
   const endMeeting = async (b: any) => {
     try {
       await orderAPI.endMeeting(b.id);
-      toast.success('会议已结束');
+      toast.success(t('booking.services.meeting.ended'));
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || '结束会议失败');
+      toast.error(e?.response?.data?.error || t('booking.services.meeting.end_failed'));
     }
   };
 
   const joinMeeting = (b: any) => {
     if (!b.roomId) {
-      toast.error('未创建会议');
+      toast.error(t('booking.services.meeting.no_room'));
       return;
     }
     navigate(`/video/${b.roomId}`);
@@ -195,7 +204,7 @@ export default function ServiceBookingPage() {
 
   const viewService = (b: any) => {
     if (!b.serviceId) {
-      toast.error('服务信息不可用');
+      toast.error(t('booking.services.service.unavailable'));
       return;
     }
     navigate(`/service/${b.serviceId}`);
@@ -220,10 +229,10 @@ export default function ServiceBookingPage() {
           await orderAPI.cancelBooking(booking.id);
         }
       }
-      toast.success('批量取消完成');
+      toast.success(t('booking.services.batch.cancel.success'));
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || '批量取消失败');
+      toast.error(e?.response?.data?.error || t('booking.services.batch.cancel.failed'));
     }
   };
 
@@ -236,10 +245,10 @@ export default function ServiceBookingPage() {
           await orderAPI.startMeeting(booking.id);
         }
       }
-      toast.success('批量开始完成');
+      toast.success(t('booking.services.batch.start.success'));
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || '批量开始失败');
+      toast.error(e?.response?.data?.error || t('booking.services.batch.start.failed'));
     }
   };
 
@@ -252,10 +261,10 @@ export default function ServiceBookingPage() {
           await orderAPI.endMeeting(booking.id);
         }
       }
-      toast.success('批量结束完成');
+      toast.success(t('booking.services.batch.end.success'));
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.error || '批量结束失败');
+      toast.error(e?.response?.data?.error || t('booking.services.batch.end.failed'));
     }
   };
 
@@ -263,61 +272,63 @@ export default function ServiceBookingPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4 border-b pb-2">
         <NavLink to="/booking" className="text-sm text-gray-500 hover:text-gray-900">
-          时段预约
+          {t('booking.services.nav.slot_booking')}
         </NavLink>
         <NavLink to="/booking/services" className="text-sm font-semibold text-primary-600">
-          服务预约（新流程）
+          {t('booking.services.nav.service_booking')}
         </NavLink>
       </div>
 
       <div className="bg-white rounded-xl p-5 shadow-sm">
         <div className="flex flex-wrap items-center gap-3 text-sm">
-          <label>角色</label>
+          <label>{t('booking.services.filters.role')}</label>
           <select className="input" value={filter.role} onChange={e=>setFilter({...filter, role: e.target.value as any})}>
-            <option value="all">全部</option>
-            <option value="requester">我发起的</option>
-            <option value="consultant">我被预约的</option>
+            <option value="all">{t('booking.services.filters.all')}</option>
+            <option value="requester">{t('booking.services.filters.requester')}</option>
+            <option value="consultant">{t('booking.services.filters.consultant')}</option>
           </select>
-          <label>状态</label>
+          <label>{t('booking.services.filters.status')}</label>
           <select className="input" value={filter.status} onChange={e=>setFilter({...filter, status: e.target.value as any})}>
-            <option value="all">全部</option>
-            <option value="pending_payment">待支付</option>
-            <option value="paid">已支付</option>
-            <option value="ready">待开始</option>
-            <option value="in_progress">进行中</option>
-            <option value="completed">已完成</option>
-            <option value="cancelled">已取消</option>
-            <option value="refunded">已退款</option>
+            <option value="all">{t('booking.services.filters.all')}</option>
+            <option value="pending_payment">{t('booking.services.status.pending_payment')}</option>
+            <option value="paid">{t('booking.services.status.paid')}</option>
+            <option value="ready">{t('booking.services.status.ready')}</option>
+            <option value="in_progress">{t('booking.services.status.in_progress')}</option>
+            <option value="completed">{t('booking.services.status.completed')}</option>
+            <option value="cancelled">{t('booking.services.status.cancelled')}</option>
+            <option value="refunded">{t('booking.services.status.refunded')}</option>
           </select>
-          <button className="btn" onClick={load}>刷新</button>
+          <button className="btn" onClick={load}>{t('booking.services.filters.refresh')}</button>
           <button className="btn" onClick={toggleSelectAll}>
-            {selectedIds.length === filtered.length ? '取消全选' : '全选'}
+            {selectedIds.length === filtered.length ? t('booking.services.filters.unselect_all') : t('booking.services.filters.select_all')}
           </button>
         </div>
 
         {selectedIds.length > 0 && (
           <div className="mt-4 flex flex-wrap items-center gap-2 bg-gray-50 border border-gray-100 rounded-lg p-3 text-sm">
-            <span>已选 {selectedIds.length} 项</span>
-            <button className="btn" onClick={batchCancel} disabled={!canBatchCancel}>批量取消</button>
-            <button className="btn" onClick={batchStart} disabled={!canBatchStart}>批量开始</button>
-            <button className="btn" onClick={batchEnd} disabled={!canBatchEnd}>批量结束</button>
+            <span>{t('booking.services.selected_count', { count: selectedIds.length })}</span>
+            <button className="btn" onClick={batchCancel} disabled={!canBatchCancel}>{t('booking.services.batch.cancel.action')}</button>
+            <button className="btn" onClick={batchStart} disabled={!canBatchStart}>{t('booking.services.batch.start.action')}</button>
+            <button className="btn" onClick={batchEnd} disabled={!canBatchEnd}>{t('booking.services.batch.end.action')}</button>
           </div>
         )}
       </div>
 
       {filtered.length === 0 ? (
         <div className="bg-white rounded-2xl p-10 shadow-sm text-center text-gray-500">
-          <div className="text-4xl mb-3">空</div>
-          <p>暂无服务预约记录</p>
-          <button className="btn mt-4" onClick={() => navigate('/community')}>去看看问答与咨询</button>
+          <div className="text-4xl mb-3">{t('booking.services.empty.title')}</div>
+          <p>{t('booking.services.empty.description')}</p>
+          <button className="btn mt-4" onClick={() => navigate('/community')}>
+            {t('booking.services.empty.cta')}
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {filtered.map((b) => {
             const displayStatus = deriveDisplayStatus(b);
             const badgeClass = STATUS_BADGE[displayStatus] || 'bg-gray-100 text-gray-600';
-            const statusLabel = STATUS_LABELS[displayStatus] || displayStatus;
-            const timeLabel = b.startAt ? new Date(b.startAt).toLocaleString('zh-CN') : '-';
+            const statusLabel = t(STATUS_LABEL_KEYS[displayStatus] || displayStatus);
+            const timeLabel = b.startAt ? new Date(b.startAt).toLocaleString(locale) : '-';
             const isRequester = b.requesterId === user?.id;
             const canOperate = ['pending_payment', 'paid'].includes(b.status) && !['in_progress', 'completed'].includes(displayStatus);
             const canJoin = ['ready', 'in_progress'].includes(displayStatus);
@@ -329,7 +340,7 @@ export default function ServiceBookingPage() {
                   <div className="flex items-center gap-3">
                     <input type="checkbox" checked={selectedIds.includes(b.id)} onChange={() => toggleSelect(b.id)} />
                     <div>
-                      <div className="text-base font-semibold">{b.service?.title || b.skill || '服务'}</div>
+                      <div className="text-base font-semibold">{b.service?.title || b.skill || t('booking.services.labels.service')}</div>
                       <div className="text-xs text-gray-500">{timeLabel}</div>
                     </div>
                   </div>
@@ -339,16 +350,22 @@ export default function ServiceBookingPage() {
                     </span>
                     <div className="text-sm font-semibold mt-2">￥{b.amount}</div>
                     {typeof b.refundAmount === 'number' && b.refundAmount > 0 && (
-                      <div className="text-xs text-teal-600">已退款 ¥{b.refundAmount}</div>
+                      <div className="text-xs text-teal-600">
+                        {t('booking.services.refund.amount_label', { amount: b.refundAmount })}
+                      </div>
                     )}
                   </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                  <span className="px-2 py-1 rounded-full bg-gray-100">{isRequester ? '我发起' : '我被约'}</span>
-                  {b.roomId && <span className="px-2 py-1 rounded-full bg-gray-100">会议已创建</span>}
+                  <span className="px-2 py-1 rounded-full bg-gray-100">
+                    {isRequester ? t('booking.services.role.requester') : t('booking.services.role.consultant')}
+                  </span>
+                  {b.roomId && <span className="px-2 py-1 rounded-full bg-gray-100">{t('booking.services.meeting.created')}</span>}
                   {b.rescheduleCount > 0 && (
-                    <span className="px-2 py-1 rounded-full bg-gray-100">已改期 {b.rescheduleCount} 次</span>
+                    <span className="px-2 py-1 rounded-full bg-gray-100">
+                      {t('booking.services.reschedule.count', { count: b.rescheduleCount })}
+                    </span>
                   )}
                 </div>
 
@@ -360,29 +377,29 @@ export default function ServiceBookingPage() {
                       value={rescheduleValue}
                       onChange={(e) => setRescheduleValue(e.target.value)}
                     />
-                    <button className="btn" onClick={() => submitReschedule(b)}>确认改期</button>
-                    <button className="btn" onClick={() => setRescheduleTarget(null)}>取消</button>
+                    <button className="btn" onClick={() => submitReschedule(b)}>{t('booking.services.reschedule.confirm')}</button>
+                    <button className="btn" onClick={() => setRescheduleTarget(null)}>{t('booking.services.cancel.action')}</button>
                   </div>
                 )}
 
                 <div className="flex flex-wrap gap-2">
-                  <button className="btn" onClick={() => setActiveBooking(b)}>详情</button>
-                  <button className="btn" onClick={() => viewService(b)}>查看详情</button>
+                  <button className="btn" onClick={() => setActiveBooking(b)}>{t('booking.services.actions.detail')}</button>
+                  <button className="btn" onClick={() => viewService(b)}>{t('booking.services.actions.view_service')}</button>
                   {b.roomId && (
                     <button className="btn" onClick={() => joinMeeting(b)} disabled={!canJoin}>
-                      进入会议
+                      {t('booking.services.actions.join_meeting')}
                     </button>
                   )}
                   {isConsultant && b.roomId && ['ready', 'paid'].includes(displayStatus) && (
-                    <button className="btn" onClick={() => startMeeting(b)}>开始会议</button>
+                    <button className="btn" onClick={() => startMeeting(b)}>{t('booking.services.actions.start_meeting')}</button>
                   )}
                   {isConsultant && ['in_progress'].includes(displayStatus) && (
-                    <button className="btn" onClick={() => endMeeting(b)}>结束会议</button>
+                    <button className="btn" onClick={() => endMeeting(b)}>{t('booking.services.actions.end_meeting')}</button>
                   )}
                   {canOperate && (
                     <>
-                      <button className="btn" onClick={() => openReschedule(b)}>改期</button>
-                      <button className="btn" onClick={() => cancelBooking(b)}>取消/退款</button>
+                      <button className="btn" onClick={() => openReschedule(b)}>{t('booking.services.actions.reschedule')}</button>
+                      <button className="btn" onClick={() => cancelBooking(b)}>{t('booking.services.actions.cancel_refund')}</button>
                     </>
                   )}
                 </div>
@@ -397,50 +414,52 @@ export default function ServiceBookingPage() {
           <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b">
               <div>
-                <div className="text-lg font-semibold">订单详情</div>
-                <div className="text-xs text-gray-500">订单号：{activeBooking.id}</div>
+                <div className="text-lg font-semibold">{t('booking.services.modal.title')}</div>
+                <div className="text-xs text-gray-500">{t('booking.services.modal.order_id', { id: activeBooking.id })}</div>
               </div>
               <button className="text-gray-500 hover:text-gray-700" onClick={() => setActiveBooking(null)}>
-                关闭
+                {t('booking.services.modal.close')}
               </button>
             </div>
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <div className="text-gray-500">服务</div>
+                  <div className="text-gray-500">{t('booking.services.modal.service')}</div>
                   <div className="font-medium">{activeBooking.service?.title || activeBooking.skill}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500">预约时间</div>
-                  <div className="font-medium">{formatTime(activeBooking.startAt)}</div>
+                  <div className="text-gray-500">{t('booking.services.modal.start_at')}</div>
+                  <div className="font-medium">{formatTime(activeBooking.startAt, locale)}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500">时长</div>
-                  <div className="font-medium">{activeBooking.service?.durationMinutes ?? activeBooking.duration} 分钟</div>
+                  <div className="text-gray-500">{t('booking.services.modal.duration')}</div>
+                  <div className="font-medium">
+                    {activeBooking.service?.durationMinutes ?? activeBooking.duration} {t('booking.services.modal.minutes')}
+                  </div>
                 </div>
                 <div>
-                  <div className="text-gray-500">金额</div>
+                  <div className="text-gray-500">{t('booking.services.modal.amount')}</div>
                   <div className="font-medium">￥{activeBooking.amount}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500">问题描述</div>
+                  <div className="text-gray-500">{t('booking.services.modal.question')}</div>
                   <div className="font-medium">{activeBooking.questionText || activeBooking.purpose || '-'}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500">会议房间</div>
+                  <div className="text-gray-500">{t('booking.services.modal.room')}</div>
                   <div className="font-medium">{activeBooking.roomId || '-'}</div>
                 </div>
               </div>
 
               <div>
-                <div className="text-sm font-semibold mb-3">时间轴</div>
+                <div className="text-sm font-semibold mb-3">{t('booking.services.modal.timeline')}</div>
                 <div className="space-y-3">
-                  {buildTimeline(activeBooking).map((item, index) => (
+                  {buildTimeline(activeBooking, t).map((item, index) => (
                     <div key={`${item.label}-${index}`} className="flex gap-3 items-start">
                       <div className="mt-1 h-2 w-2 rounded-full bg-primary-500"></div>
                       <div>
                         <div className="text-sm font-medium">{item.label}</div>
-                        <div className="text-xs text-gray-500">{formatTime(item.time)}</div>
+                        <div className="text-xs text-gray-500">{formatTime(item.time, locale)}</div>
                       </div>
                     </div>
                   ))}
@@ -448,7 +467,9 @@ export default function ServiceBookingPage() {
               </div>
 
               {activeBooking.cancelReason && (
-                <div className="text-sm text-rose-600">取消原因：{activeBooking.cancelReason}</div>
+                <div className="text-sm text-rose-600">
+                  {t('booking.services.cancel.reason_label', { reason: activeBooking.cancelReason })}
+                </div>
               )}
             </div>
           </div>

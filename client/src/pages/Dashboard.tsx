@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   CalendarIcon,
@@ -11,25 +11,28 @@ import {
 import { UserCircleIcon } from '@heroicons/react/24/solid';
 import { useMemoStore } from '@/store/memoStore';
 import { format } from 'date-fns';
-import { zhCN } from 'date-fns/locale';
+import { enUS, zhCN } from 'date-fns/locale';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 function HaloAvatar({
   src,
   frameStyle,
+  altText,
 }: {
   src?: string | null;
   frameStyle?: React.CSSProperties;
+  altText: string;
 }) {
   const particles = useMemo(() => {
-    const count = 22; // 粒子数量：越大越“炸裂”，但也更吃性能
+    const count = 22;
     return Array.from({ length: count }, (_, i) => {
       const a = Math.round((360 / count) * i + (Math.random() * 18 - 9));
-      const r = 52 + Math.round(Math.random() * 10); // 头像外侧半径
-      const s = 1 + Math.random() * 1.4; // 粒子缩放
-      const b = Math.round(2 + Math.random() * 8); // 粒子模糊
-      const o = 0.25 + Math.random() * 0.65; // 粒子透明度
-      const d = (Math.random() * 1.4).toFixed(2); // 延迟
-      const t = (2.2 + Math.random() * 2.6).toFixed(2); // 周期
+      const r = 52 + Math.round(Math.random() * 10);
+      const s = 1 + Math.random() * 1.4;
+      const b = Math.round(2 + Math.random() * 8);
+      const o = 0.25 + Math.random() * 0.65;
+      const d = (Math.random() * 1.4).toFixed(2);
+      const t = (2.2 + Math.random() * 2.6).toFixed(2);
       return {
         key: `p-${i}`,
         a: `${a}deg`,
@@ -45,7 +48,6 @@ function HaloAvatar({
 
   return (
     <div className="relative group">
-      {/* 粒子场 */}
       <div className="pointer-events-none absolute -inset-6 rounded-full halo-field">
         {particles.map((p) => (
           <span
@@ -66,13 +68,9 @@ function HaloAvatar({
         ))}
       </div>
 
-      {/* 能量环（光滑渐变 + 旋转） */}
       <div className="pointer-events-none absolute -inset-3 rounded-full halo-ring" />
-
-      {/* 柔和外发光 */}
       <div className="pointer-events-none absolute -inset-2 rounded-full halo-glow" />
 
-      {/* 头像 + 边框（保持你原来的 frameStyle 逻辑） */}
       <div
         className="relative w-24 h-24 rounded-full p-[3px] shadow-inner"
         style={frameStyle}
@@ -81,7 +79,7 @@ function HaloAvatar({
           {src ? (
             <img
               src={src}
-              alt="avatar"
+              alt={altText}
               className="w-full h-full object-cover"
               draggable={false}
             />
@@ -105,6 +103,12 @@ export default function Dashboard() {
     completedMemos: 0,
     upcomingEvents: 0,
   });
+  const { t, lang } = useLanguage();
+
+  const locale = lang === 'zh' ? zhCN : enUS;
+  const dateLabel = lang === 'zh'
+    ? format(new Date(), 'yyyy年MM月dd日 EEEE', { locale })
+    : format(new Date(), 'MMM dd, yyyy EEEE', { locale });
 
   useEffect(() => {
     fetchMemos();
@@ -115,7 +119,7 @@ export default function Dashboard() {
       totalMemos: memos.length,
       pendingMemos: memos.filter((m) => m.status === 'pending').length,
       completedMemos: memos.filter((m) => m.status === 'completed').length,
-      upcomingEvents: 0, // TODO: 从日历API获取
+      upcomingEvents: 0,
     });
   }, [memos]);
 
@@ -126,13 +130,15 @@ export default function Dashboard() {
     if (savedFrame) setCustomFrame(savedFrame);
   }, []);
 
-  const frames = [
-    { id: 'none', name: '无边框', style: { border: '2px solid rgba(17,24,39,0.08)' } },
-    { id: 'gold', name: '金色', style: { border: '3px solid #f59e0b', boxShadow: '0 0 12px #fbbf24' } },
-    { id: 'pink', name: '樱粉', style: { border: '3px solid #f472b6', boxShadow: '0 0 12px #f472b6' } },
-    { id: 'blue', name: '霓虹', style: { border: '3px solid #38bdf8', boxShadow: '0 0 12px #38bdf8' } },
-    { id: 'green', name: '薄荷', style: { border: '3px solid #22c55e', boxShadow: '0 0 12px #22c55e' } },
-  ];
+  const frames = useMemo(() => (
+    [
+      { id: 'none', name: t('无边框'), style: { border: '2px solid rgba(17,24,39,0.08)' } },
+      { id: 'gold', name: t('金色'), style: { border: '3px solid #f59e0b', boxShadow: '0 0 12px #fbbf24' } },
+      { id: 'pink', name: t('樱粉'), style: { border: '3px solid #f472b6', boxShadow: '0 0 12px #f472b6' } },
+      { id: 'blue', name: t('霓虹'), style: { border: '3px solid #38bdf8', boxShadow: '0 0 12px #38bdf8' } },
+      { id: 'green', name: t('薄荷'), style: { border: '3px solid #22c55e', boxShadow: '0 0 12px #22c55e' } },
+    ]
+  ), [t]);
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -161,39 +167,35 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* 欢迎标题 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">仪表盘</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          {format(new Date(), 'yyyy年MM月dd日 EEEE', { locale: zhCN })}
-        </p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('nav.dashboard')}</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">{dateLabel}</p>
       </div>
 
-      {/* 统计卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="总备忘录"
+          title={t('总备忘录')}
           value={stats.totalMemos}
           icon={DocumentTextIcon}
           color="primary"
           link="/memos"
         />
         <StatCard
-          title="待处理"
+          title={t('待处理')}
           value={stats.pendingMemos}
           icon={ClockIcon}
           color="yellow"
           link="/memos?status=pending"
         />
         <StatCard
-          title="已完成"
+          title={t('已完成')}
           value={stats.completedMemos}
           icon={ChartBarIcon}
           color="green"
           link="/memos?status=completed"
         />
         <StatCard
-          title="即将到来"
+          title={t('即将到来')}
           value={stats.upcomingEvents}
           icon={CalendarIcon}
           color="blue"
@@ -201,140 +203,132 @@ export default function Dashboard() {
         />
       </div>
 
-    <div className="relative overflow-hidden rounded-2xl glass-card">
-      {/* 顶部柔光背景 */}
-      <div
-        className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl"
-        style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 18%, transparent)' }}
-      />
-      <div
-        className="pointer-events-none absolute -bottom-28 -left-28 h-80 w-80 rounded-full blur-3xl"
-        style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 12%, transparent)' }}
-      />
+      <div className="relative overflow-hidden rounded-2xl glass-card">
+        <div
+          className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 18%, transparent)' }}
+        />
+        <div
+          className="pointer-events-none absolute -bottom-28 -left-28 h-80 w-80 rounded-full blur-3xl"
+          style={{ backgroundColor: 'color-mix(in srgb, var(--primary-color) 12%, transparent)' }}
+        />
 
-      <div className="relative p-8">
-        <div className="flex items-start justify-between gap-4 mb-6">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-xl soft-tile shadow-sm">
-              <PhotoIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
-                个性化角
-              </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                与你的「个性化」页面联动，头像与边框保持一致
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => navigate("/personalize")}
-              className="px-4 py-2 rounded-xl btn-soft text-sm font-semibold"
-            >
-              前往个性化
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:items-center gap-8">
-          {/* 左侧：头像展示 */}
-          <div className="flex items-center gap-5">
-            <HaloAvatar src={customAvatar} frameStyle={currentFrameStyle} />
-            <div className="min-w-[220px]">
-              <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">
-                选择喜欢的头像和边框，保存在本地
-              </p>
-              <div className="text-xs text-gray-500 mt-1">
-                
+        <div className="relative p-8">
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 inline-flex h-10 w-10 items-center justify-center rounded-xl soft-tile shadow-sm">
+                <PhotoIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-3">
-                <label
-                  htmlFor="dashboard-avatar-upload"
-                  className="px-3 py-1.5 rounded-lg bg-white/80 text-gray-700 text-xs font-semibold shadow-sm border border-gray-200 hover:bg-white transition"
-                >
-                  上传头像
-                </label>
-                {customAvatar && (
-                  <button
-                    onClick={handleAvatarClear}
-                    className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-semibold border border-gray-200 hover:bg-gray-200 transition"
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
+                  {t('个性化角')}
+                </h2>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {t('与你的「个性化」页面联动，头像与边框保持一致')}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <button
+                onClick={() => navigate('/personalize')}
+                className="px-4 py-2 rounded-xl btn-soft text-sm font-semibold"
+              >
+                {t('前往个性化')}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center gap-8">
+            <div className="flex items-center gap-5">
+              <HaloAvatar src={customAvatar} frameStyle={currentFrameStyle} altText={t('头像')} />
+              <div className="min-w-[220px]">
+                <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">
+                  {t('选择喜欢的头像和边框，保存在本地')}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-3">
+                  <label
+                    htmlFor="dashboard-avatar-upload"
+                    className="px-3 py-1.5 rounded-lg bg-white/80 text-gray-700 text-xs font-semibold shadow-sm border border-gray-200 hover:bg-white transition"
                   >
-                    清除头像
-                  </button>
-                )}
-                <input
-                  id="dashboard-avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  className="hidden"
-                />
-              </div>
-              <div className="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <span className="inline-block h-2 w-2 rounded-full bg-emerald-400/80 shadow-[0_0_0_4px_rgba(52,211,153,0.18)] dark:shadow-[0_0_0_4px_rgba(52,211,153,0.1)]" />
-                光晕为粒子层叠动画（非单圈），更细腻更“活”
+                    {t('上传头像')}
+                  </label>
+                  {customAvatar && (
+                    <button
+                      onClick={handleAvatarClear}
+                      className="px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 text-xs font-semibold border border-gray-200 hover:bg-gray-200 transition"
+                    >
+                      {t('清除头像')}
+                    </button>
+                  )}
+                  <input
+                    id="dashboard-avatar-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                  />
+                </div>
+                <div className="mt-3 inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-400/80 shadow-[0_0_0_4px_rgba(52,211,153,0.18)] dark:shadow-[0_0_0_4px_rgba(52,211,153,0.1)]" />
+                  {t('光晕为粒子层叠动画（非单圈），更细腻更“活”')}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* 右侧：边框选择 */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
-              <PaintBrushIcon className="w-4 h-4" />
-              边框
-            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-3 text-sm font-semibold text-gray-800 dark:text-gray-200">
+                <PaintBrushIcon className="w-4 h-4" />
+                {t('边框')}
+              </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {frames.map((frame: any) => {
-                const active = customFrame === frame.id;
-                return (
-                  <button
-                    key={frame.id}
-                    onClick={() => handleFrameSelect(frame.id)}
-                    className={[
-                      "group relative p-3 rounded-2xl border text-sm transition-all",
-                      "bg-white/70 hover:bg-white shadow-sm hover:shadow-md",
-                      "dark:bg-gray-800/50 dark:hover:bg-gray-700/80", // 深色适配
-                      active
-                        ? "border-primary-300 ring-2 ring-primary-100 dark:border-primary-500 dark:ring-primary-900/50"
-                        : "border-gray-200 hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-500/50",
-                    ].join(" ")}
-                  >
-                    <div className="mx-auto mb-2 w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-700 grid place-items-center">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                {frames.map((frame: any) => {
+                  const active = customFrame === frame.id;
+                  return (
+                    <button
+                      key={frame.id}
+                      onClick={() => handleFrameSelect(frame.id)}
+                      className={[
+                        'group relative p-3 rounded-2xl border text-sm transition-all',
+                        'bg-white/70 hover:bg-white shadow-sm hover:shadow-md',
+                        'dark:bg-gray-800/50 dark:hover:bg-gray-700/80',
+                        active
+                          ? 'border-primary-300 ring-2 ring-primary-100 dark:border-primary-500 dark:ring-primary-900/50'
+                          : 'border-gray-200 hover:border-primary-200 dark:border-gray-700 dark:hover:border-primary-500/50',
+                      ].join(' ')}
+                    >
+                      <div className="mx-auto mb-2 w-12 h-12 rounded-full bg-gray-50 dark:bg-gray-700 grid place-items-center">
+                        <div
+                          className={[
+                            'w-12 h-12 rounded-full',
+                            active ? 'scale-[1.02]' : 'group-hover:scale-[1.02]',
+                            'transition-transform',
+                          ].join(' ')}
+                          style={frame.style as any}
+                        />
+                      </div>
                       <div
                         className={[
-                          "w-12 h-12 rounded-full",
-                          active ? "scale-[1.02]" : "group-hover:scale-[1.02]",
-                          "transition-transform",
-                        ].join(" ")}
-                        style={frame.style as any}
-                      />
-                    </div>
-                    <div
-                      className={[
-                        "text-center font-medium",
-                        active ? "text-primary-700 dark:text-primary-300" : "text-gray-700 dark:text-gray-300",
-                      ].join(" ")}
-                    >
-                      {frame.name}
-                    </div>
+                          'text-center font-medium',
+                          active ? 'text-primary-700 dark:text-primary-300' : 'text-gray-700 dark:text-gray-300',
+                        ].join(' ')}
+                      >
+                        {frame.name}
+                      </div>
 
-                    {/* 选中高光 */}
-                    {active && (
-                      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-primary-50/60 to-transparent dark:from-primary-900/20" />
-                    )}
-                  </button>
-                );
-              })}
+                      {active && (
+                        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-primary-50/60 to-transparent dark:from-primary-900/20" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* 粒子/光环 CSS（同文件即可） */}
-      <style>{`
+        <style>{`
         .halo-glow{
           background: radial-gradient(circle at 50% 50%,
             rgba(236,72,153,0.28) 0%,
@@ -394,7 +388,6 @@ export default function Dashboard() {
           animation-delay: var(--d);
         }
 
-        /* hover 加强光感 */
         .group:hover .halo-glow{
           opacity: 1;
         }
@@ -428,29 +421,28 @@ export default function Dashboard() {
           }
         }
       `}</style>
-    </div>
+      </div>
 
-      {/* 最近备忘录 */}
       <div className="bg-white rounded-lg shadow dark:bg-gray-800 dark:border dark:border-gray-700">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">最近备忘录</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t('最近备忘录')}</h2>
           <Link
             to="/memos"
             className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium"
           >
-            查看全部 →
+            {t('查看全部 →')}
           </Link>
         </div>
         <div className="divide-y divide-gray-200 dark:divide-gray-700">
           {recentMemos.length === 0 ? (
             <div className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
               <DocumentTextIcon className="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500" />
-              <p>还没有备忘录</p>
+              <p>{t('还没有备忘录')}</p>
               <Link
                 to="/memos"
                 className="inline-block mt-4 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-500"
               >
-                创建第一个备忘录
+                {t('创建第一个备忘录')}
               </Link>
             </div>
           ) : (
@@ -458,14 +450,14 @@ export default function Dashboard() {
               <Link
                 key={memo.id}
                 to="/memos"
-                aria-label={`打开备忘录列表：${memo.title}`}
+                aria-label={t('打开备忘录列表: {title}', { title: memo.title })}
                 className="block px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="font-medium text-gray-900 dark:text-white">{memo.title}</h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-                      {memo.content?.replace(/<[^>]*>/g, '') || '暂无内容'}
+                      {memo.content?.replace(/<[^>]*>/g, '') || t('暂无内容')}
                     </p>
                     <div className="flex items-center gap-2 mt-2">
                       {Array.isArray(memo.labels) && memo.labels.map((label) => (
@@ -489,23 +481,22 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 快捷操作 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <QuickActionCard
-          title="创建备忘录"
-          description="记录新的想法和任务"
+          title={t('创建备忘录')}
+          description={t('记录新的想法和任务')}
           icon={DocumentTextIcon}
           link="/memos"
         />
         <QuickActionCard
-          title="查看日历"
-          description="管理您的日程安排"
+          title={t('查看日历')}
+          description={t('管理您的日程安排')}
           icon={CalendarIcon}
           link="/calendar"
         />
         <QuickActionCard
-          title="时间规划"
-          description="优化时间利用率"
+          title={t('时间规划')}
+          description={t('优化时间利用率')}
           icon={ClockIcon}
           link="/timeline"
         />
@@ -559,20 +550,21 @@ function QuickActionCard({ title, description, icon: Icon, link }: any) {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const { t } = useLanguage();
   const statusConfig = {
-    pending: { label: '待处理', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200' },
-    in_progress: { label: '进行中', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' },
-    completed: { label: '已完成', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' },
+    pending: { label: t('待处理'), color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200' },
+    in_progress: { label: t('进行中'), color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200' },
+    completed: { label: t('已完成'), color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' },
   };
 
   const config = statusConfig[status as keyof typeof statusConfig] || {
-    label: status || '未知',
+    label: status || t('未知'),
     color: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
   };
-  
+
   return (
     <span className={`px-2 py-1 text-xs font-medium rounded ${config.color}`}>
       {config.label}
     </span>
   );
-}
+}

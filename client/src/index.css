@@ -17,6 +17,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Performance helpers for heavy background layers */
+.perf-layer {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
 /* Soft, theme-aware surfaces/buttons */
 :root {
   --font-sans: 'Manrope', 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;

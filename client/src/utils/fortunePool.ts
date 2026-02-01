@@ -1,9 +1,6 @@
-export type Fortune = {
-  tier: string;
-  text: string;
-};
+import type { Lang } from "@/i18n/translations";
 
-const tierTemplates: Record<string, string[]> = {
+const tierTemplatesZh = {
   上上签: [
     '鸿运当头，事事顺遂',
     '贵人扶携，机缘正好',
@@ -195,14 +192,125 @@ const tierTemplates: Record<string, string[]> = {
   ],
 };
 
-export const fortunePool: Fortune[] = (() => {
+type FortuneTier = keyof typeof tierTemplatesZh;
+
+export type Fortune = {
+  tier: FortuneTier;
+  label: string;
+  text: string;
+};
+
+const tierTemplatesEn: Record<FortuneTier, string[]> = {
+  "???": [
+    "Great luck arrives; everything aligns.",
+    "A helpful ally appears right on time.",
+    "The path clears; your wish takes shape.",
+    "Good news follows the long wait.",
+    "Momentum is on your side; keep going.",
+    "Bright stars guide you; rise step by step.",
+    "Joy returns and hearts are light.",
+    "Opportunity meets your preparation.",
+  ],
+  "??": [
+    "Smooth communication brings solid results.",
+    "Steady progress wins the day.",
+    "Patience pays; small wins add up.",
+    "A calm mind makes the right call.",
+    "Details shine; keep the rhythm.",
+    "Support comes from trusted friends.",
+    "Your effort begins to show.",
+    "Today favors consistent action.",
+  ],
+  "???": [
+    "Good things are near; stay patient.",
+    "Keep your pace and avoid rushing.",
+    "Quiet focus leads to steady growth.",
+    "Build the base before you sprint.",
+    "Listen, adjust, then move.",
+    "Leave some room; balance matters.",
+    "Progress is real, though subtle.",
+    "Small steps now, bigger steps soon.",
+  ],
+  "??": [
+    "A normal day; keep balance.",
+    "Stay grounded; routine brings ease.",
+    "Slow is smooth; smooth is fast.",
+    "Keep to the plan and stay steady.",
+    "Avoid extremes; be patient.",
+    "Calm waters favor quiet work.",
+    "Save your energy and pace yourself.",
+    "Moderation keeps you safe.",
+  ],
+  "???": [
+    "Minor setbacks; slow down a bit.",
+    "Tidy up before you push ahead.",
+    "Pause and refocus; then continue.",
+    "Lower the noise, raise the signal.",
+    "Step back to see the whole path.",
+    "Adjust expectations and re-plan.",
+    "Small steps, careful moves.",
+    "Patience now prevents bigger issues.",
+  ],
+  "??": [
+    "Avoid rushing; protect your basics.",
+    "Delay big decisions and observe.",
+    "Keep a low profile and stay calm.",
+    "Watch the details; avoid mistakes.",
+    "Conserve energy and focus on health.",
+    "Reduce unnecessary spending.",
+    "Choose safe paths over bold moves.",
+    "Stability matters more than speed.",
+  ],
+  "???": [
+    "Hold position; reduce risks.",
+    "Pause major plans and regroup.",
+    "Minimize exposure and stay cautious.",
+    "Avoid conflict; seek calm.",
+    "Cut losses early and reset.",
+    "Keep the essentials and simplify.",
+    "Recover first, expand later.",
+    "Wait for a better wind.",
+  ],
+};
+
+const tierLabels: Record<Lang, Record<FortuneTier, string>> = {
+  zh: {
+    "???": "???",
+    "??": "??",
+    "???": "???",
+    "??": "??",
+    "???": "???",
+    "??": "??",
+    "???": "???",
+  },
+  en: {
+    "???": "Great Fortune",
+    "??": "Very Good",
+    "???": "Good",
+    "??": "Neutral",
+    "???": "Caution",
+    "??": "Low",
+    "???": "Very Low",
+  },
+};
+
+const getSignLabel = (lang: Lang, index: number) =>
+  lang === "zh" ? `?${index + 1}?` : `No. ${index + 1}`;
+
+export const getFortunePool = (lang: Lang): Fortune[] => {
   const out: Fortune[] = [];
-  Object.entries(tierTemplates).forEach(([tier, templates]) => {
+  const templates = lang === "zh" ? tierTemplatesZh : tierTemplatesEn;
+  const labels = tierLabels[lang];
+
+  Object.entries(templates).forEach(([tier, items]) => {
     for (let i = 0; i < 25; i++) {
-      const base = templates[i % templates.length];
-      out.push({ tier, text: `${base} · 第${i + 1}签` });
+      const base = items[i % items.length];
+      const signLabel = getSignLabel(lang, i);
+      out.push({ tier: tier as FortuneTier, label: labels[tier as FortuneTier], text: `${base} ? ${signLabel}` });
     }
   });
-  return out;
-})();
 
+  return out;
+};
+
+export const fortunePool = getFortunePool("zh");

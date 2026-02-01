@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { whiteboardAPI } from '@/services/api';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Point = { x: number; y: number };
 type Stroke = {
@@ -37,6 +38,7 @@ function parseActionData(data: any) {
 }
 
 export default function MeetingWhiteboard({ roomId }: Props) {
+  const { t } = useLanguage();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   const actionsRef = useRef<WhiteboardAction[]>([]);
@@ -149,8 +151,8 @@ export default function MeetingWhiteboard({ roomId }: Props) {
         setWhiteboardId(created.data.id);
       }
     } catch (err) {
-      console.error('加载白板失败', err);
-      setError('加载白板失败');
+      console.error(t('whiteboard.load_failed'), err);
+      setError(t('whiteboard.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -168,7 +170,7 @@ export default function MeetingWhiteboard({ roomId }: Props) {
       actionsRef.current = parsed;
       renderActions(parsed);
     } catch (err) {
-      console.error('同步白板失败', err);
+      console.error(t('whiteboard.sync_failed'), err);
     }
   };
 
@@ -245,7 +247,7 @@ export default function MeetingWhiteboard({ roomId }: Props) {
       });
       actionsRef.current = [...actionsRef.current, { id: `${Date.now()}`, actionType: 'stroke', actionData: stroke }];
     } catch (err) {
-      toast.error('白板同步失败');
+      toast.error(t('whiteboard.sync_failed'));
     }
   };
 
@@ -254,9 +256,9 @@ export default function MeetingWhiteboard({ roomId }: Props) {
     try {
       await whiteboardAPI.clear(whiteboardId);
       await loadActions();
-      toast.success('白板已清空');
+      toast.success(t('whiteboard.cleared'));
     } catch (err) {
-      toast.error('清空失败');
+      toast.error(t('whiteboard.clear_failed'));
     }
   };
 
@@ -264,8 +266,8 @@ export default function MeetingWhiteboard({ roomId }: Props) {
     <div className="h-full w-full rounded-2xl border border-gray-700 bg-gray-900/70 backdrop-blur p-4 flex flex-col">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="text-sm font-semibold text-white">共享白板</div>
-          <div className="text-xs text-gray-400">多人协作书写、可同步</div>
+          <div className="text-sm font-semibold text-white">{t('whiteboard.title')}</div>
+          <div className="text-xs text-gray-400">{t('whiteboard.subtitle')}</div>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -273,14 +275,14 @@ export default function MeetingWhiteboard({ roomId }: Props) {
             onClick={handleClear}
             className="px-3 py-1.5 text-xs rounded-full bg-gray-800 text-gray-200 hover:bg-gray-700"
           >
-            清空
+            {t('whiteboard.clear')}
           </button>
           <button
             type="button"
             onClick={loadActions}
             className="px-3 py-1.5 text-xs rounded-full bg-indigo-600 text-white hover:bg-indigo-500"
           >
-            同步
+            {t('whiteboard.sync')}
           </button>
         </div>
       </div>
@@ -298,7 +300,7 @@ export default function MeetingWhiteboard({ roomId }: Props) {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <span>笔刷</span>
+          <span>{t('whiteboard.brush')}</span>
           <input
             type="range"
             min={2}
@@ -315,19 +317,19 @@ export default function MeetingWhiteboard({ roomId }: Props) {
             onClick={() => setMode('draw')}
             className={`px-3 py-1 rounded-full ${mode === 'draw' ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300'}`}
           >
-            书写
+            {t('whiteboard.draw')}
           </button>
           <button
             type="button"
             onClick={() => setMode('erase')}
             className={`px-3 py-1 rounded-full ${mode === 'erase' ? 'bg-rose-500 text-white' : 'bg-gray-800 text-gray-300'}`}
           >
-            橡皮
+            {t('whiteboard.erase')}
           </button>
         </div>
       </div>
 
-      {loading && <div className="mt-3 text-xs text-gray-400">加载白板中...</div>}
+      {loading && <div className="mt-3 text-xs text-gray-400">{t('whiteboard.loading')}</div>}
       {error && <div className="mt-3 text-xs text-rose-400">{error}</div>}
 
       <div ref={frameRef} className="mt-3 flex-1 rounded-xl overflow-hidden border border-gray-200 bg-white">

@@ -1922,7 +1922,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     '已清空': 'Cleared',
     '已选择邀请 {count} 位用户': 'Invited {count} users',
     '开心收下': 'Gladly accept',
-    '弹幕内容不能为空且不超过50字': "Barrage can't be empty and must be <= 50 chars",
+    '弹幕内容不能为空且不超过50字': 'Barrage can't be empty and must be <= 50 chars',
     '心情药剂': 'Mood Potion',
     '撤销': 'Undo',
     '暂无日程': 'No schedule yet',
@@ -2248,3 +2248,6 @@ export const translations: Record<Lang, Record<string, string>> = {
     'service.create.submit': 'Publish service',
   }
 };
+
+
+==================================================

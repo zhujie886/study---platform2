@@ -14,6 +14,7 @@ import {
 import { HeartIcon } from '@heroicons/react/24/solid';
 import { useAuthStore } from '@/store/authStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
@@ -129,6 +130,7 @@ const buildPattern = (color: string, variant: 'hearts' | 'waves' | 'stars' | 'le
 
 export default function SocialPage() {
   const { theme } = useThemeStore();
+  const { t, lang } = useLanguage();
   const [posts, setPosts] = useState<Post[]>([]);
   const [filter, setFilter] = useState<'mine' | 'public'>('mine');
   const [loading, setLoading] = useState(false);
@@ -137,8 +139,8 @@ export default function SocialPage() {
   const [avatarError, setAvatarError] = useState(false);
   const { user, token } = useAuthStore();
 
-  const displayName = user?.username || user?.email || '访客';
-  const displayBio = user?.username ? '写点什么来展示自己吧' : '登录后发布动态';
+  const displayName = user?.username || user?.email || t('访客');
+  const displayBio = user?.username ? t('写点什么来展示自己吧') : t('登录后发布动态');
 
   useEffect(() => {
     const savedAvatar =
@@ -164,7 +166,7 @@ export default function SocialPage() {
       });
       setPosts(response.data.posts || []);
     } catch (error) {
-      console.error('获取动态失败:', error);
+      console.error(t('获取动态失败:'), error);
     } finally {
       setLoading(false);
     }
@@ -199,7 +201,7 @@ export default function SocialPage() {
         })
       );
     } catch (error) {
-      toast.error('操作失败');
+      toast.error(t('操作失败'));
     }
   };
 
@@ -237,7 +239,7 @@ export default function SocialPage() {
         <div className="relative aspect-[4/5] bg-slate-100 overflow-hidden">
           <img
             src={resolveAssetUrl(preview[0])}
-            alt="动态图片"
+            alt={t('动态图片')}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             onError={(event) => {
               event.currentTarget.style.display = 'none';
@@ -253,7 +255,7 @@ export default function SocialPage() {
           <div key={img + idx} className="relative aspect-square overflow-hidden bg-slate-100">
             <img
               src={resolveAssetUrl(img)}
-              alt={`动态图片 ${idx + 1}`}
+              alt={t('动态图片 {index}', { index: idx + 1 })}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
               onError={(event) => {
                 event.currentTarget.style.display = 'none';
@@ -279,7 +281,7 @@ export default function SocialPage() {
         className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute top-3 left-3 px-2 py-1 rounded-full text-xs font-semibold text-white bg-black/60">
-        视频
+        {t('视频')}
       </div>
     </div>
   );
@@ -307,8 +309,8 @@ export default function SocialPage() {
                 <ChatBubbleLeftRightIcon className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">发布动态</h1>
-                <p className="text-sm text-gray-600">展示自己 · 记录当下</p>
+                <h1 className="text-2xl font-bold text-gray-900">{t('发布动态')}</h1>
+                <p className="text-sm text-gray-600">{t('展示自己 · 记录当下')}</p>
               </div>
             </div>
             <button
@@ -316,7 +318,7 @@ export default function SocialPage() {
               className="inline-flex items-center gap-2 px-5 py-2.5 btn-soft rounded-full shadow-sm hover:shadow-md transition"
             >
               <PlusIcon className="w-5 h-5" />
-              发布动态
+              {t('发布动态')}
             </button>
           </div>
 
@@ -356,7 +358,7 @@ export default function SocialPage() {
                 className="hidden md:inline-flex items-center gap-2 px-4 py-2 rounded-full btn-soft text-sm"
               >
                 <PencilSquareIcon className="w-4 h-4" />
-                记录此刻
+                {t('记录此刻')}
               </button>
             </div>
 
@@ -380,7 +382,7 @@ export default function SocialPage() {
                   }
                 >
                   <UserCircleIcon className="w-4 h-4" />
-                  我的动态
+                  {t('我的动态')}
                 </button>
                 <button
                   onClick={() => setFilter('public')}
@@ -395,10 +397,10 @@ export default function SocialPage() {
                   }
                 >
                   <GlobeAltIcon className="w-4 h-4" />
-                  公开广场
+                  {t('公开广场')}
                 </button>
               </div>
-              <span className="text-xs text-gray-500">共 {postCount} 条</span>
+              <span className="text-xs text-gray-500">{t('共 {count} 条', { count: postCount })}</span>
             </div>
           </div>
         </div>
@@ -408,18 +410,18 @@ export default function SocialPage() {
         {loading ? (
           <div className="text-center py-16">
             <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
-            <p className="mt-4 text-gray-500">加载中...</p>
+            <p className="mt-4 text-gray-500">{t('加载中...')}</p>
           </div>
         ) : posts.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center">
             <PencilSquareIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-lg text-gray-700">暂无动态，发布你的第一条动态吧</p>
+            <p className="text-lg text-gray-700">{t('暂无动态，发布你的第一条动态吧')}</p>
             <button
               onClick={() => setShowCreateModal(true)}
               className="mt-6 inline-flex items-center gap-2 px-6 py-2.5 bg-gray-900 text-white rounded-full shadow-sm hover:shadow-md"
             >
               <PlusIcon className="w-5 h-5" />
-              发布动态
+              {t('发布动态')}
             </button>
           </div>
         ) : (
@@ -449,7 +451,7 @@ export default function SocialPage() {
                           </span>
                           {post.user.isVerified && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
-                              已认证
+                              {t('已认证')}
                             </span>
                           )}
                         </Link>
@@ -534,12 +536,12 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
     e.preventDefault();
 
     if (!content.trim() && images.length === 0 && !videoUrl.trim()) {
-      toast.error('动态内容不能为空');
+      toast.error(t('动态内容不能为空'));
       return;
     }
 
     if (imageUploading || videoUploading) {
-      toast.error('请等待文件上传完成');
+      toast.error(t('请等待文件上传完成'));
       return;
     }
 
@@ -558,11 +560,11 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      toast.success('发布成功');
+      toast.success(t('发布成功'));
       onSuccess();
       onClose();
     } catch (error) {
-      toast.error('发布失败');
+      toast.error(t('发布失败'));
     } finally {
       setLoading(false);
     }
@@ -579,7 +581,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
     if (!files || files.length === 0) return;
     const fileList = Array.from(files);
     if (images.length + fileList.length > 9) {
-      toast.error('最多上传 9 张图片');
+      toast.error(t('最多上传 9 张图片'));
       return;
     }
 
@@ -594,12 +596,12 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
         .map((item: { url?: string }) => item.url)
         .filter(Boolean) as string[];
       if (uploaded.length === 0) {
-        toast.error('图片上传失败');
+        toast.error(t('图片上传失败'));
         return;
       }
       setImages((prev) => [...prev, ...uploaded]);
     } catch (error) {
-      toast.error('图片上传失败');
+      toast.error(t('图片上传失败'));
     } finally {
       setImageUploading(false);
     }
@@ -620,13 +622,13 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (!response.data.url) {
-        toast.error('视频上传失败');
+        toast.error(t('视频上传失败'));
         return;
       }
       setVideoUrl(response.data.url);
       setVideoName(file.name);
     } catch (error) {
-      toast.error('视频上传失败');
+      toast.error(t('视频上传失败'));
     } finally {
       setVideoUploading(false);
     }
@@ -642,7 +644,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">发布动态</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('发布动态')}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               ×
             </button>
@@ -651,34 +653,34 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                动态内容 ({content.length}/500)
+                {t('动态内容 ({count}/500)', { count: content.length })}
               </label>
               <textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 rows={6}
-                placeholder="写下今天的想法、进展或心得..."
+                placeholder={t('写下今天的想法、进展或心得...')}
                 maxLength={500}
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">可见范围</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('可见范围')}</label>
               <select
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as 'public' | 'followers' | 'private')}
                 className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
               >
-                <option value="public">公开广场</option>
-                <option value="followers">仅关注者</option>
-                <option value="private">仅自己</option>
+                <option value="public">{t('公开广场')}</option>
+                <option value="followers">{t('仅关注者')}</option>
+                <option value="private">{t('仅自己')}</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                话题标签（最多 5 个）
+                {t('话题标签（最多 5 个）')}
               </label>
               <div className="flex gap-2 mb-2">
                 <input
@@ -692,7 +694,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                     }
                   }}
                   className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500"
-                  placeholder="输入话题标签"
+                  placeholder={t('输入话题标签')}
                   disabled={topics.length >= 5}
                 />
                 <button
@@ -701,7 +703,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                   disabled={topics.length >= 5}
                   className="px-4 py-2 bg-gray-900 text-white rounded-lg disabled:opacity-50"
                 >
-                  添加
+                  {t('添加')}
                 </button>
               </div>
               {topics.length > 0 && (
@@ -726,11 +728,11 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">上传图片（可选）</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('上传图片（可选）')}</label>
               <div className="flex flex-wrap items-center gap-3 mb-3">
                 <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white ${imageUploading ? 'bg-gray-400' : 'bg-gray-900 hover:bg-gray-800'} cursor-pointer`}>
                   <PhotoIcon className="w-5 h-5" />
-                  {imageUploading ? '上传中...' : '选择图片'}
+                  {imageUploading ? t('上传中...') : t('选择图片')}
                   <input
                     type="file"
                     accept="image/*"
@@ -740,7 +742,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                     onChange={(e) => handleImageUpload(e.target.files)}
                   />
                 </label>
-                <span className="text-xs text-gray-500">最多 9 张，大小不限（建议压缩以加快加载）</span>
+                <span className="text-xs text-gray-500">{t('最多 9 张，大小不限（建议压缩以加快加载）')}</span>
               </div>
               {images.length > 0 && (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
@@ -748,7 +750,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                     <div key={img} className="relative group">
                       <img
                         src={resolveAssetUrl(img)}
-                        alt="上传图片"
+                        alt={t('上传图片')}
                         className="w-full h-24 object-cover rounded-lg border border-gray-200"
                       />
                       <button
@@ -765,11 +767,11 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">上传视频（可选）</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('上传视频（可选）')}</label>
               <div className="flex flex-wrap items-center gap-3">
                 <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white ${videoUploading ? 'bg-gray-400' : 'bg-gray-900 hover:bg-gray-800'} cursor-pointer`}>
                   <PhotoIcon className="w-5 h-5" />
-                  {videoUploading ? '上传中...' : '选择视频'}
+                  {videoUploading ? t('上传中...') : t('选择视频')}
                   <input
                     type="file"
                     accept="video/*"
@@ -784,17 +786,17 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                     onClick={clearVideo}
                     className="px-3 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50"
                   >
-                    移除视频
+                    {t('移除视频')}
                   </button>
                 )}
-                <span className="text-xs text-gray-500">大小不限（建议压缩以加快加载）</span>
+                <span className="text-xs text-gray-500">{t('大小不限（建议压缩以加快加载）')}</span>
               </div>
               {videoUrl && (
                 <div className="mt-3">
                   <div className="rounded-xl overflow-hidden border border-gray-200">
                     <video src={resolveAssetUrl(videoUrl)} controls className="w-full" />
                   </div>
-                  <p className="mt-2 text-xs text-gray-500">已上传：{videoName || videoUrl}</p>
+                  <p className="mt-2 text-xs text-gray-500">{t('已上传：{name}', { name: videoName || videoUrl })}</p>
                 </div>
               )}
             </div>
@@ -805,14 +807,14 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
                 onClick={onClose}
                 className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50"
               >
-                取消
+                {t('取消')}
               </button>
               <button
                 type="submit"
                 disabled={loading || imageUploading || videoUploading}
                 className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-lg hover:opacity-90 disabled:opacity-50"
               >
-                {loading ? '发布中...' : (imageUploading || videoUploading ? '上传中...' : '发布动态')}
+                {loading ? t('发布中...') : (imageUploading || videoUploading ? t('上传中...') : t('发布动态'))}
               </button>
             </div>
           </form>

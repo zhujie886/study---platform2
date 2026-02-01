@@ -135,11 +135,19 @@ export const updateUser = async (req: Request, res: Response) => {
 export const resetUserPassword = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'missing user id' });
+    }
     const raw = req.body?.password ?? req.body?.newPassword;
     const password = typeof raw === 'string' ? raw.trim() : '';
 
     if (!password || password.length < 6) {
       return res.status(400).json({ error: 'password too short' });
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: 'user not found' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

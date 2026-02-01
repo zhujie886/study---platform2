@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
-
-export const NoteWidget = () => {
-  const [text, setText] = useState('点击这里写下今天的备忘...');
+import React, { useState, useEffect } from 'react';
+import { useLanguage } from '@/i18n/LanguageContext';
+
+export const NoteWidget = () => {
+  const { t } = useLanguage();
+  const [text, setText] = useState(() => t('note.default_text'));
 
   useEffect(() => {
     const saved = localStorage.getItem('my_sticky_note');
@@ -20,15 +22,15 @@ export const NoteWidget = () => {
         <div className="w-20 h-4 bg-yellow-300/60 opacity-50 rotate-1"></div>
       </div>
       
-      <textarea 
-        className="flex-1 w-full bg-transparent p-4 resize-none outline-none font-handwriting text-gray-700 text-lg leading-relaxed"
-        value={text}
-        onChange={handleChange}
-        placeholder="写点什么..."
-      />
-      <div className="absolute bottom-2 right-4 text-xs text-yellow-600/50 select-none">
-        自动保存
-      </div>
+      <textarea 
+        className="flex-1 w-full bg-transparent p-4 resize-none outline-none font-handwriting text-gray-700 text-lg leading-relaxed"
+        value={text}
+        onChange={handleChange}
+        placeholder={t('note.placeholder')}
+      />
+      <div className="absolute bottom-2 right-4 text-xs text-yellow-600/50 select-none">
+        {t('note.autosave')}
+      </div>
     </div>
   );
 };

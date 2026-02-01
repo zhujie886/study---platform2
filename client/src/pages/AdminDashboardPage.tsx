@@ -1,11 +1,13 @@
 // @ts-nocheck
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { adminAPI } from '../services/api';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 const AdminDashboardPage = () => {
   const [activeTab, setActiveTab] = useState('users'); // Default to users tab
   const { t } = useLanguage();
+  const navigate = useNavigate();
   const [data, setData] = useState({ posts: [], memos: [], meetings: [], users: [] });
   const [stats, setStats] = useState({ totals: {}, last7d: {} });
   const [logs, setLogs] = useState('');
@@ -56,7 +58,7 @@ const AdminDashboardPage = () => {
       }
 
     } catch (error) {
-      console.error("数据加载失败:", error);
+      console.error(t('数据加载失败:'), error);
       setData({ posts: [], memos: [], meetings: [], users: [] });
       setStats({ totals: {}, last7d: {} });
       setLogs('');
@@ -98,8 +100,9 @@ const AdminDashboardPage = () => {
     try {
       await adminAPI.resetUserPassword(user.id || user._id, { password: newPassword.trim() });
       alert(t('admin.reset.success'));
-    } catch (error) {
-      alert(t('admin.reset.failed'));
+    } catch (error: any) {
+      const message = error?.response?.data?.error || t('admin.reset.failed');
+      alert(message);
     }
   };
 
@@ -124,6 +127,15 @@ const AdminDashboardPage = () => {
     } catch (error) {
       alert(t('admin.unmute.failed'));
     }
+  };
+
+  const handleBackHome = () => {
+    navigate('/');
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    navigate('/admin/login');
   };
 
   const formatDate = (value) => {
@@ -159,12 +171,29 @@ const AdminDashboardPage = () => {
     container: { padding: '30px', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' },
     title: { margin: 0, color: '#333' },
+    headerActions: { display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' },
     refreshBtn: {
       padding: '8px 14px',
       borderRadius: '999px',
       border: '1px solid #cbd5f5',
       background: '#eef2ff',
       color: '#1f2a44',
+      cursor: 'pointer'
+    },
+    backBtn: {
+      padding: '8px 14px',
+      borderRadius: '999px',
+      border: '1px solid #f3c5d7',
+      background: '#fff',
+      color: '#9d2b5b',
+      cursor: 'pointer'
+    },
+    logoutBtn: {
+      padding: '8px 14px',
+      borderRadius: '999px',
+      border: '1px solid #f6bcd4',
+      background: '#fde7f3',
+      color: '#9d2b5b',
       cursor: 'pointer'
     },
     searchBox: { 
@@ -216,7 +245,7 @@ const AdminDashboardPage = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <h1 style={styles.title}>🛡️ {t('admin.dashboard.title')}</h1>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={styles.headerActions}>
           <input 
             type="text" 
             placeholder={`🔍 ${t('admin.search.placeholder')}`}
@@ -225,6 +254,8 @@ const AdminDashboardPage = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <button style={styles.refreshBtn} onClick={fetchData}>{t('admin.dashboard.refresh')}</button>
+          <button style={styles.backBtn} onClick={handleBackHome}>{t('admin.dashboard.backHome')}</button>
+          <button style={styles.logoutBtn} onClick={handleLogout}>{t('admin.dashboard.logout')}</button>
         </div>
       </div>
 

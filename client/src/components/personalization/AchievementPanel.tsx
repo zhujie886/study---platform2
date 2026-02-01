@@ -1,4 +1,5 @@
 ﻿import React from 'react';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export type Achievement = { id: number; text: string; icon: string };
 
@@ -14,18 +15,25 @@ interface AchievementPanelProps {
 
 const ICONS = ["🏆", "🎯", "✨", "🌟", "💡", "🔥", "📚", "✅", "💪", "🌈", "🥇", "🎉"];
 
-const PROMPTS = [
-  '完成了一个拖了很久的小事',
-  '今天主动解决了一个问题',
-  '学到了一个新知识点',
-  '做了一次有效沟通',
-  '坚持了一个好习惯',
-  '把一件事做得更清晰',
-  '比昨天多走了一步',
-  '及时停下来休息了一下',
+const PROMPT_KEYS = [
+  'achievement.prompt.long_task',
+  'achievement.prompt.solve_issue',
+  'achievement.prompt.new_skill',
+  'achievement.prompt.effective_comm',
+  'achievement.prompt.good_habit',
+  'achievement.prompt.make_clear',
+  'achievement.prompt.extra_step',
+  'achievement.prompt.take_rest',
 ];
 
-const QUICK_CHIPS = ['写完一页笔记', '做完一次复盘', '跑通一段代码', '整理了桌面', '完成一个TODO', '早睡一次'];
+const QUICK_CHIP_KEYS = [
+  'achievement.quick.note_page',
+  'achievement.quick.review',
+  'achievement.quick.code',
+  'achievement.quick.tidy',
+  'achievement.quick.todo',
+  'achievement.quick.sleep',
+];
 
 type SortKey = 'new' | 'old' | 'pinned';
 
@@ -40,12 +48,12 @@ function computeLevel(count: number) {
   const progress = inLevel / 5; // 0..1
   const xp = count * 10;
   const nextLevelAt = (level * 5) * 10;
-  const label =
-    level >= 8 ? '宗师' :
-    level >= 6 ? '大师' :
-    level >= 4 ? '进阶' :
-    level >= 2 ? '上手' : '新手';
-  return { level, progress, xp, nextLevelAt, label };
+  const labelKey =
+    level >= 8 ? 'achievement.level.master' :
+    level >= 6 ? 'achievement.level.expert' :
+    level >= 4 ? 'achievement.level.advanced' :
+    level >= 2 ? 'achievement.level.novice' : 'achievement.level.beginner';
+  return { level, progress, xp, nextLevelAt, labelKey };
 }
 
 function safeCopy(text: string) {
@@ -63,7 +71,8 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
   setInput,
 }) => {
   const count = items.length;
-  const { level, progress, xp, label } = computeLevel(count);
+  const { t } = useLanguage();
+  const { level, progress, xp, labelKey } = computeLevel(count);
 
   // Local “玩法”状态：不影响外部逻辑，不要求后端字段
   const [query, setQuery] = React.useState('');
@@ -85,7 +94,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
     if (count > prev && items.length > 0) {
       const newest = items.reduce((a, b) => (b.id > a.id ? b : a), items[0]);
       setHighlightId(newest.id);
-      setToast(`+1 成就：${newest.icon} ${newest.text}`);
+      setToast(t('achievement.toast_added', { icon: newest.icon, text: newest.text }));
       if (celebrate) setBurstKey((k) => k + 1);
 
       const t1 = window.setTimeout(() => setToast(null), 2400);
@@ -96,7 +105,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
       };
     }
     prevCountRef.current = count;
-  }, [count, items, celebrate]);
+  }, [count, items, celebrate, t]);
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -130,8 +139,8 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
   };
 
   const randomPrompt = () => {
-    const s = PROMPTS[Math.floor(Math.random() * PROMPTS.length)];
-    setInput(s);
+    const key = PROMPT_KEYS[Math.floor(Math.random() * PROMPT_KEYS.length)];
+    setInput(t(key));
     window.setTimeout(() => inputRef.current?.focus(), 0);
   };
 
@@ -180,23 +189,23 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
               </div>
               <div className="leading-tight">
                 <div className="flex items-center gap-2">
-                  <span className="text-[15px] font-extrabold tracking-tight text-slate-800">成就墙</span>
+                  <span className="text-[15px] font-extrabold tracking-tight text-slate-800">{t('achievement.title')}</span>
                   <span className="rounded-full bg-slate-900/5 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-                    {count} 条 · 置顶 {pinnedCount}
+                    {t('achievement.count_summary', { count, pinnedCount })}
                   </span>
                 </div>
                 <div className="mt-0.5 flex items-center gap-2 text-[12px] text-slate-500">
                   <span className="rounded-full bg-slate-900/5 px-2 py-0.5 text-slate-700/80">
-                    Lv.{level} {label}
+                    {t('achievement.level_label', { level })} {t(labelKey)}
                   </span>
-                  <span>XP {xp}</span>
+                  <span>{t('achievement.xp', { xp })}</span>
                 </div>
               </div>
             </div>
 
             <button
               onClick={onClose}
-              aria-label="关闭"
+              aria-label={t('common.close')}
               className="group inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-slate-500 ring-1 ring-slate-900/10 transition-all hover:-translate-y-0.5 hover:bg-white hover:text-slate-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-200"
             >
               <span className="text-lg leading-none transition-transform group-hover:rotate-90">×</span>
@@ -206,7 +215,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
           {/* Level progress bar */}
           <div className="mt-3 rounded-2xl bg-white/60 p-3 ring-1 ring-slate-900/10">
             <div className="flex items-center justify-between text-[11px] text-slate-500">
-              <span>升级进度</span>
+              <span>{t('achievement.level_progress')}</span>
               <span>{Math.round(progress * 100)}%</span>
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-900/10">
@@ -219,20 +228,20 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
             {/* Goal */}
             <div className="mt-3 flex items-center justify-between gap-2">
               <div className="text-[11px] text-slate-500">
-                目标：{count}/{goal}
+                {t('achievement.goal_label', { count, goal })}
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setGoal((g) => clamp(g - 1, 1, 99))}
                   className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-white/70 text-[14px] font-bold text-slate-600 ring-1 ring-slate-900/10 hover:bg-white hover:shadow"
-                  aria-label="目标减一"
+                  aria-label={t('achievement.goal_decrease')}
                 >
                   –
                 </button>
                 <button
                   onClick={() => setGoal((g) => clamp(g + 1, 1, 99))}
                   className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-white/70 text-[14px] font-bold text-slate-600 ring-1 ring-slate-900/10 hover:bg-white hover:shadow"
-                  aria-label="目标加一"
+                  aria-label={t('achievement.goal_increase')}
                 >
                   +
                 </button>
@@ -243,7 +252,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                     onChange={(e) => setCelebrate(e.target.checked)}
                     className="h-3 w-3 accent-yellow-400"
                   />
-                  庆祝
+                  {t('achievement.celebrate')}
                 </label>
               </div>
             </div>
@@ -265,7 +274,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="搜索成就…"
+                placeholder={t('achievement.search_placeholder')}
                 className="h-10 flex-1 bg-transparent text-[13px] text-slate-800 outline-none placeholder:text-slate-400"
               />
               {query && (
@@ -273,7 +282,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                   onClick={() => setQuery('')}
                   className="rounded-full bg-slate-900/5 px-2 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-900/10"
                 >
-                  清空
+                  {t('achievement.clear')}
                 </button>
               )}
             </div>
@@ -282,11 +291,11 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
               value={sortKey}
               onChange={(e) => setSortKey(e.target.value as SortKey)}
               className="h-10 rounded-2xl bg-white/70 px-3 text-[12px] font-semibold text-slate-700 ring-1 ring-slate-900/10 outline-none hover:bg-white"
-              aria-label="排序"
+              aria-label={t('achievement.sort')}
             >
-              <option value="new">最新</option>
-              <option value="old">最早</option>
-              <option value="pinned">置顶优先</option>
+              <option value="new">{t('achievement.sort_new')}</option>
+              <option value="old">{t('achievement.sort_old')}</option>
+              <option value="pinned">{t('achievement.sort_pinned')}</option>
             </select>
           </div>
         </div>
@@ -294,13 +303,13 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
         {/* Icon picker */}
         <div className="px-5 pt-4">
           <div className="flex items-center justify-between">
-            <div className="text-[12px] font-semibold text-slate-600">图标贴纸</div>
+            <div className="text-[12px] font-semibold text-slate-600">{t('achievement.icon_sticker')}</div>
             <button
               onClick={randomPrompt}
               className="rounded-full bg-slate-900/5 px-3 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-900/10"
-              title="随机灵感"
+              title={t('achievement.random_prompt')}
             >
-              随机灵感
+              {t('achievement.random_prompt')}
             </button>
           </div>
 
@@ -316,8 +325,8 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                 <button
                   key={e}
                   onClick={() => setIcon(e)}
-                  title={`选择 ${e}`}
-                  aria-label={`选择图标 ${e}`}
+                  title={t('achievement.icon_select', { icon: e })}
+                  aria-label={t('achievement.icon_select_label', { icon: e })}
                   className={[
                     'relative grid h-9 w-9 shrink-0 place-items-center rounded-xl text-lg transition-all',
                     'ring-1 ring-slate-900/10 bg-white/60 hover:bg-white hover:shadow',
@@ -337,14 +346,14 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
 
           {/* Quick chips */}
           <div className="mt-2 flex flex-wrap gap-2">
-            {QUICK_CHIPS.map((c) => (
+            {QUICK_CHIP_KEYS.map((key) => (
               <button
-                key={c}
-                onClick={() => quickFill(c)}
+                key={key}
+                onClick={() => quickFill(t(key))}
                 className="rounded-full bg-white/65 px-3 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-900/10 hover:bg-white hover:shadow"
-                title="点一下填入输入框"
+                title={t('achievement.quick_fill')}
               >
-                {c}
+                {t(key)}
               </button>
             ))}
           </div>
@@ -363,7 +372,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && onAdd()}
-                placeholder="记录一个小成就（回车可添加）"
+                placeholder={t('achievement.input_placeholder')}
                 className="h-10 flex-1 bg-transparent text-[13px] text-slate-800 outline-none placeholder:text-slate-400"
               />
 
@@ -375,7 +384,7 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                   'hover:-translate-y-0.5 hover:shadow-md active:translate-y-0',
                 ].join(' ')}
               >
-                添加
+                {t('achievement.add')}
               </button>
             </div>
           </div>
@@ -389,10 +398,10 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                 <span className="text-2xl">?</span>
               </div>
               <div className="text-[13px] font-semibold text-slate-700">
-                {count === 0 ? '还没有成就' : '没有匹配结果'}
+                {count === 0 ? t('achievement.empty_title') : t('achievement.empty_no_match')}
               </div>
               <div className="mt-1 text-[12px] text-slate-500">
-                {count === 0 ? '先写一条小目标，像打游戏一样慢慢点亮它' : '试试换个关键词，或清空搜索'}
+                {count === 0 ? t('achievement.empty_hint') : t('achievement.empty_search_hint')}
               </div>
 
               <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-yellow-200/40 blur-2xl" />
@@ -417,8 +426,8 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                       <button
                         onClick={() => openItem(it.id)}
                         className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-slate-900/5 to-slate-900/0 ring-1 ring-slate-900/10 hover:shadow"
-                        title="展开查看"
-                        aria-label="展开查看"
+                        title={t('achievement.expand')}
+                        aria-label={t('achievement.expand')}
                       >
                         <span className="text-2xl drop-shadow-sm">{it.icon}</span>
                       </button>
@@ -430,8 +439,8 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                             'inline-flex h-7 w-7 items-center justify-center rounded-xl ring-1 ring-slate-900/10 transition-all',
                             isPinned ? 'bg-yellow-200/70 text-slate-800' : 'bg-white/70 text-slate-600 hover:bg-white',
                           ].join(' ')}
-                          title={isPinned ? '取消置顶' : '置顶'}
-                          aria-label={isPinned ? '取消置顶' : '置顶'}
+                          title={isPinned ? t('achievement.unpin') : t('achievement.pin')}
+                          aria-label={isPinned ? t('achievement.unpin') : t('achievement.pin')}
                         >
                           {isPinned ? '📌' : '📍'}
                         </button>
@@ -439,12 +448,12 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                         <button
                           onClick={() => {
                             safeCopy(`${it.icon} ${it.text}`);
-                            setToast('已复制到剪贴板');
+                            setToast(t('achievement.copied'));
                             window.setTimeout(() => setToast(null), 1200);
                           }}
                           className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-white/70 text-slate-600 ring-1 ring-slate-900/10 hover:bg-white hover:shadow"
-                          title="复制"
-                          aria-label="复制"
+                          title={t('achievement.copy')}
+                          aria-label={t('achievement.copy')}
                         >
                           📋
                         </button>
@@ -458,9 +467,9 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                       <button
                         onClick={() => openItem(it.id)}
                         className="mt-1 text-[11px] font-semibold text-slate-500 opacity-0 transition-opacity group-hover:opacity-100"
-                        aria-label="查看详情"
+                        aria-label={t('achievement.view_detail')}
                       >
-                        查看详情 →
+                        {t('achievement.view_detail')}
                       </button>
                     </div>
 
@@ -476,8 +485,8 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
           )}
 
           <div className="mt-4 flex items-center justify-between text-[11px] text-slate-400">
-            <span>提示：回车可快速添加 · 点击图标可展开</span>
-            <span className="rounded-full bg-slate-900/5 px-2 py-0.5 text-slate-500">可玩版 · 搜索/置顶/等级</span>
+            <span>{t('achievement.hint')}</span>
+            <span className="rounded-full bg-slate-900/5 px-2 py-0.5 text-slate-500">{t('achievement.playable_badge')}</span>
           </div>
         </div>
       </div>
@@ -495,15 +504,15 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                   <span className="text-3xl">{modalItem.icon}</span>
                 </div>
                 <div>
-                  <div className="text-[14px] font-extrabold text-slate-800">成就详情</div>
-                  <div className="mt-0.5 text-[12px] text-slate-500">ID #{modalItem.id}</div>
+                  <div className="text-[14px] font-extrabold text-slate-800">{t('achievement.detail_title')}</div>
+                  <div className="mt-0.5 text-[12px] text-slate-500">{t('achievement.id_label', { id: modalItem.id })}</div>
                 </div>
               </div>
 
               <button
                 onClick={closeModal}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-slate-600 ring-1 ring-slate-900/10 hover:bg-white hover:shadow"
-                aria-label="关闭详情"
+                aria-label={t('achievement.close_detail')}
               >
                 ×
               </button>
@@ -520,25 +529,25 @@ export const AchievementPanel: React.FC<AchievementPanelProps> = ({
                 onClick={() => togglePin(modalItem.id)}
                 className="rounded-2xl bg-white/70 px-4 py-2 text-[12px] font-extrabold text-slate-700 ring-1 ring-slate-900/10 hover:bg-white hover:shadow"
               >
-                {pinned[modalItem.id] ? '取消置顶' : '置顶'}
+                {pinned[modalItem.id] ? t('achievement.unpin') : t('achievement.pin')}
               </button>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
                     safeCopy(`${modalItem.icon} ${modalItem.text}`);
-                    setToast('已复制到剪贴板');
+                    setToast(t('achievement.copied'));
                     window.setTimeout(() => setToast(null), 1200);
                   }}
                   className="rounded-2xl bg-white/70 px-4 py-2 text-[12px] font-extrabold text-slate-700 ring-1 ring-slate-900/10 hover:bg-white hover:shadow"
                 >
-                  复制
+                  {t('achievement.copy')}
                 </button>
                 <button
                   onClick={closeModal}
                   className="rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 text-[12px] font-extrabold text-white shadow-sm hover:shadow-md"
                 >
-                  好的
+                  {t('achievement.ok')}
                 </button>
               </div>
             </div>

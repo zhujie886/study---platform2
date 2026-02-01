@@ -7,6 +7,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import { useLanguage } from '@/i18n/LanguageContext';
 import {
   ArrowsPointingOutIcon,
   ChatBubbleLeftIcon,
@@ -25,6 +26,7 @@ const WebARCanvas = lazy(() => import('@/components/WebARCanvas'));
 
 export default function EnhancedVideoRoomPage() {
   const { id } = useParams();
+  const { t } = useLanguage();
   const [room, setRoom] = useState<any>(null);
   const [participants, setParticipants] = useState<any[]>([]);
   const [isMuted, setIsMuted] = useState(false);
@@ -47,12 +49,12 @@ export default function EnhancedVideoRoomPage() {
       );
       setRoom(response.data);
     } catch (error) {
-      toast.error('加载会议失败');
+      toast.error(t('加载会议失败'));
     }
   };
 
   const leaveCall = () => {
-    if (confirm('确定要离开会议吗？')) {
+    if (confirm(t('确定要离开会议吗？'))) {
       window.history.back();
     }
   };
@@ -77,7 +79,7 @@ export default function EnhancedVideoRoomPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* AR 视频画面区 */}
         <div className="flex-1 relative bg-black">
-          <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-black text-white">加载AR体验中...</div>}>
+          <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-black text-white">{t('加载AR体验中...')}</div>}>
             <WebARCanvas />
           </Suspense>
 
@@ -114,4 +116,3 @@ export default function EnhancedVideoRoomPage() {
     </div>
   );
 }
-

@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { timelineAPI } from '@/services/api';
 import { socketService } from '@/services/socket';
 import toast from 'react-hot-toast';
-import { format, addDays, subDays } from 'date-fns';
+import { addDays, format, subDays } from 'date-fns';
+import { enUS, zhCN } from 'date-fns/locale';
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   PlusIcon,
   TrashIcon
 } from '@heroicons/react/24/outline';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function TimelinePage() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -17,22 +19,27 @@ export default function TimelinePage() {
   const [timeBlocks, setTimeBlocks] = useState<any[]>([]);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', priority: 1, estimatedTime: 30 });
+  const { t, lang } = useLanguage();
 
   useEffect(() => {
     fetchTimeline();
 
-    // WebSocket实时更新
     socketService.onTimelineUpdated((tl) => {
       setTimeline(tl);
       setTasks(tl.tasks || []);
       setTimeBlocks(tl.timeBlocks || []);
-      toast('时间表已更新', { icon: '🔄' });
+      toast(t('时间表已更新'), { icon: '??' });
     });
 
     return () => {
       socketService.removeAllListeners();
     };
   }, [currentDate]);
+
+  const locale = lang === 'zh' ? zhCN : enUS;
+  const dateLabel = lang === 'zh'
+    ? format(currentDate, 'yyyy年MM月dd日', { locale })
+    : format(currentDate, 'MMM dd, yyyy', { locale });
 
   const fetchTimeline = async () => {
     try {
@@ -60,7 +67,7 @@ export default function TimelinePage() {
 
   const handleAddTask = async () => {
     if (!newTask.title) {
-      toast.error('请输入任务标题');
+      toast.error(t('请输入任务标题'));
       return;
     }
 
@@ -81,9 +88,9 @@ export default function TimelinePage() {
       setTasks(updatedTasks);
       setNewTask({ title: '', priority: 1, estimatedTime: 30 });
       setIsAddingTask(false);
-      toast.success('任务已添加');
+      toast.success(t('任务已添加'));
     } catch (error) {
-      toast.error('添加任务失败');
+      toast.error(t('添加任务失败'));
     }
   };
 
@@ -92,9 +99,9 @@ export default function TimelinePage() {
     try {
       await updateTimeline({ tasks: updatedTasks });
       setTasks(updatedTasks);
-      toast.success('任务已删除');
+      toast.success(t('任务已删除'));
     } catch (error) {
-      toast.error('删除任务失败');
+      toast.error(t('删除任务失败'));
     }
   };
 
@@ -115,15 +122,15 @@ export default function TimelinePage() {
       await updateTimeline({ tasks: updatedTasks });
       setTasks(updatedTasks);
     } catch (error) {
-      toast.error('更新任务状态失败');
+      toast.error(t('更新任务状态失败'));
     }
   };
 
   const handleAddTimeBlock = async () => {
-    const start = prompt('开始时间 (HH:mm):');
-    const end = prompt('结束时间 (HH:mm):');
-    const task = prompt('任务内容:');
-    const category = prompt('类别 (work/study/rest/meeting):') || 'work';
+    const start = prompt(t('开始时间 (HH:mm):'));
+    const end = prompt(t('结束时间 (HH:mm):'));
+    const task = prompt(t('任务内容:'));
+    const category = prompt(t('类别 (work/study/rest/meeting):')) || 'work';
 
     if (!start || !end || !task) return;
 
@@ -142,9 +149,9 @@ export default function TimelinePage() {
     try {
       await updateTimeline({ timeBlocks: updatedBlocks });
       setTimeBlocks(updatedBlocks);
-      toast.success('时间块已添加');
+      toast.success(t('时间块已添加'));
     } catch (error) {
-      toast.error('添加时间块失败');
+      toast.error(t('添加时间块失败'));
     }
   };
 
@@ -153,9 +160,9 @@ export default function TimelinePage() {
     try {
       await updateTimeline({ timeBlocks: updatedBlocks });
       setTimeBlocks(updatedBlocks);
-      toast.success('时间块已删除');
+      toast.success(t('时间块已删除'));
     } catch (error) {
-      toast.error('删除时间块失败');
+      toast.error(t('删除时间块失败'));
     }
   };
 
@@ -174,19 +181,27 @@ export default function TimelinePage() {
     return colors[category] || '#6b7280';
   };
 
+  const getCategoryLabel = (category: string) => {
+    const map: Record<string, string> = {
+      work: t('工作'),
+      study: t('学习'),
+      rest: t('休息'),
+      meeting: t('会议'),
+    };
+    return map[category] || category;
+  };
+
   const completedTasks = tasks.filter((t) => t.status === 'completed').length;
   const totalTasks = tasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   return (
     <div className="space-y-6">
-      {/* 头部 */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">时间表</h1>
-        <p className="text-gray-600 mt-1">规划和追踪您的时间分配</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('时间表')}</h1>
+        <p className="text-gray-600 mt-1">{t('规划和追踪您的时间分配')}</p>
       </div>
 
-      {/* 日期导航 */}
       <div className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
         <button
           onClick={handlePrevDay}
@@ -195,17 +210,15 @@ export default function TimelinePage() {
           <ChevronLeftIcon className="w-5 h-5" />
         </button>
         <div className="text-center">
-          <h2 className="text-xl font-bold text-gray-900">
-            {format(currentDate, 'yyyy年MM月dd日')}
-          </h2>
-          <p className="text-sm text-gray-600">{format(currentDate, 'EEEE')}</p>
+          <h2 className="text-xl font-bold text-gray-900">{dateLabel}</h2>
+          <p className="text-sm text-gray-600">{format(currentDate, 'EEEE', { locale })}</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={handleToday}
             className="px-4 py-2 rounded-lg btn-soft"
           >
-            今天
+            {t('今天')}
           </button>
           <button
             onClick={handleNextDay}
@@ -216,10 +229,9 @@ export default function TimelinePage() {
         </div>
       </div>
 
-      {/* 统计卡片 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">任务完成率</h3>
+          <h3 className="text-sm font-medium text-gray-600 mb-2">{t('任务完成率')}</h3>
           <div className="flex items-end gap-2">
             <span className="text-3xl font-bold text-gray-900">{completionRate}%</span>
             <span className="text-sm text-gray-500 mb-1">
@@ -235,30 +247,30 @@ export default function TimelinePage() {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">时间利用率</h3>
+          <h3 className="text-sm font-medium text-gray-600 mb-2">{t('时间利用率')}</h3>
           <div className="flex items-end gap-2">
             <span className="text-3xl font-bold text-gray-900">
               {timeline?.utilizationRate || 0}%
             </span>
           </div>
           <p className="text-sm text-gray-500 mt-2">
-            工作时长: {Math.floor((timeline?.totalWorkTime || 0) / 60)}小时
+            {t('工作时长: {hours}小时', { hours: Math.floor((timeline?.totalWorkTime || 0) / 60) })}
           </p>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">时间分布</h3>
+          <h3 className="text-sm font-medium text-gray-600 mb-2">{t('时间分布')}</h3>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
-              <span>工作</span>
+              <span>{t('工作')}</span>
               <span className="font-medium">{Math.floor((timeline?.statistics?.work || 0) / 60)}h</span>
             </div>
             <div className="flex justify-between">
-              <span>学习</span>
+              <span>{t('学习')}</span>
               <span className="font-medium">{Math.floor((timeline?.statistics?.study || 0) / 60)}h</span>
             </div>
             <div className="flex justify-between">
-              <span>休息</span>
+              <span>{t('休息')}</span>
               <span className="font-medium">{Math.floor((timeline?.statistics?.rest || 0) / 60)}h</span>
             </div>
           </div>
@@ -266,16 +278,15 @@ export default function TimelinePage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 任务看板 */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">任务看板</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('任务看板')}</h2>
             <button
               onClick={() => setIsAddingTask(true)}
               className="flex items-center px-3 py-1 rounded-lg btn-soft text-sm"
             >
               <PlusIcon className="w-4 h-4 mr-1" />
-              添加
+              {t('添加')}
             </button>
           </div>
           <div className="p-6 space-y-3">
@@ -285,7 +296,7 @@ export default function TimelinePage() {
                   type="text"
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  placeholder="任务标题..."
+                  placeholder={t('任务标题...')}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 />
                 <div className="flex gap-2">
@@ -293,13 +304,13 @@ export default function TimelinePage() {
                     onClick={handleAddTask}
                     className="px-4 py-2 rounded-lg btn-soft text-sm"
                   >
-                    保存
+                    {t('保存')}
                   </button>
                   <button
                     onClick={() => setIsAddingTask(false)}
                     className="px-4 py-2 bg-gray-200 text-gray-700 text-sm rounded-lg hover:bg-gray-300"
                   >
-                    取消
+                    {t('取消')}
                   </button>
                 </div>
               </div>
@@ -333,7 +344,7 @@ export default function TimelinePage() {
                         {task.title}
                       </h4>
                       <p className="text-sm text-gray-500 mt-1">
-                        预计 {task.estimatedTime} 分钟
+                        {t('预计 {minutes} 分钟', { minutes: task.estimatedTime })}
                       </p>
                     </div>
                   </div>
@@ -349,22 +360,21 @@ export default function TimelinePage() {
 
             {tasks.length === 0 && !isAddingTask && (
               <div className="text-center py-8 text-gray-500">
-                <p>还没有任务，点击上方按钮添加</p>
+                <p>{t('还没有任务，点击上方按钮添加')}</p>
               </div>
             )}
           </div>
         </div>
 
-        {/* 时间轴 */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">时间轴</h2>
+            <h2 className="text-lg font-semibold text-gray-900">{t('时间轴')}</h2>
             <button
               onClick={handleAddTimeBlock}
               className="flex items-center px-3 py-1 rounded-lg btn-soft text-sm"
             >
               <PlusIcon className="w-4 h-4 mr-1" />
-              添加
+              {t('添加')}
             </button>
           </div>
           <div className="p-6 space-y-2">
@@ -382,7 +392,7 @@ export default function TimelinePage() {
                         {block.start} - {block.end}
                       </span>
                       <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-700 rounded">
-                        {block.category}
+                        {getCategoryLabel(block.category)}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 mt-1">{block.task}</p>
@@ -398,7 +408,7 @@ export default function TimelinePage() {
 
             {timeBlocks.length === 0 && (
               <div className="text-center py-8 text-gray-500">
-                <p>还没有时间块，点击上方按钮添加</p>
+                <p>{t('还没有时间块，点击上方按钮添加')}</p>
               </div>
             )}
           </div>
@@ -406,5 +416,4 @@ export default function TimelinePage() {
       </div>
     </div>
   );
-}
-
+}

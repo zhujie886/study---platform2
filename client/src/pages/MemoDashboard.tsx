@@ -11,14 +11,17 @@ import { useTheme } from "../hooks/useTheme";
 import { useAuthStore } from "../store/authStore";
 import { useMemoStore } from "../store/memoStore";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function MemoDashboard() {
   const { theme } = useTheme();
+  const { t, lang } = useLanguage();
   const { user } = useAuthStore();
   const { memos, fetchMemos, isLoading } = useMemoStore();
   const [activeCategory, setActiveCategory] = useState("总备忘录");
   const [isPersonalCenterOpen, setIsPersonalCenterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const locale = lang === 'en' ? 'en-US' : 'zh-CN';
 
   useEffect(() => {
     fetchMemos();
@@ -67,8 +70,17 @@ export default function MemoDashboard() {
     if (!dateValue) return '-';
     const date = new Date(dateValue);
     if (Number.isNaN(date.getTime())) return '-';
-    return date.toLocaleDateString('zh-CN');
+    return date.toLocaleDateString(locale);
   };
+
+  const displayName = user?.username || t('hub.guest');
+  const themeLabel = theme === 'cyber'
+    ? t('赛博朋克')
+    : theme === 'ocean'
+      ? t('深海之梦')
+      : theme === 'forest'
+        ? t('迷雾森林')
+        : t('樱花物语');
 
   return (
     <div className="min-h-screen w-full pb-20 transition-colors duration-500">
@@ -78,7 +90,7 @@ export default function MemoDashboard() {
              M
            </div>
            <h1 className="text-xl font-bold tracking-wide" style={{ color: 'var(--text-main)' }}>
-             我的备忘录
+             {t('我的备忘录')}
            </h1>
          </div>
 
@@ -93,10 +105,10 @@ export default function MemoDashboard() {
       <div className="container mx-auto px-4 max-w-5xl">
         <div className="mb-10 px-2">
            <h2 className="text-3xl font-black mb-2" style={{ color: 'var(--text-main)' }}>
-             你好，{user?.username || 'Traveler'}!
+             {t('你好，{name}!', { name: displayName })}
            </h2>
            <p className="text-lg opacity-80" style={{ color: 'var(--text-muted)' }}>
-             当前主题: {theme === 'cyber' ? '赛博朋克' : theme === 'ocean' ? '深海之梦' : theme === 'forest' ? '迷雾森林' : '樱花物语'}
+             {t('当前主题: {theme}', { theme: themeLabel })}
            </p>
         </div>
 
@@ -112,7 +124,7 @@ export default function MemoDashboard() {
                 {item.icon}
               </div>
               <p className="text-2xl font-bold mb-1" style={{ color: 'var(--text-main)' }}>{item.count}</p>
-              <p className="text-sm font-medium opacity-70" style={{ color: 'var(--text-muted)' }}>{item.category}</p>
+              <p className="text-sm font-medium opacity-70" style={{ color: 'var(--text-muted)' }}>{t(item.category)}</p>
             </motion.div>
           ))}
         </div>
@@ -120,7 +132,7 @@ export default function MemoDashboard() {
         <div className="glass-card rounded-2xl p-2 flex items-center gap-2 mb-6">
            <Search className="ml-3 opacity-50" size={20} style={{ color: 'var(--text-main)' }} />
            <input 
-             placeholder="搜索..." 
+             placeholder={t('admin.search.placeholder')}
              value={searchQuery}
              onChange={(e) => setSearchQuery(e.target.value)}
              className="bg-transparent border-none outline-none flex-1 py-2 font-medium placeholder-gray-500/50"
@@ -130,18 +142,18 @@ export default function MemoDashboard() {
              className="px-6 py-2 rounded-xl font-bold text-white shadow-md transition-transform hover:scale-105 active:scale-95 flex items-center gap-2"
              style={{ backgroundColor: 'var(--primary-color)' }}
            >
-             <Plus size={18} strokeWidth={3} /> 新建
+             <Plus size={18} strokeWidth={3} /> {t('新建')}
            </button>
         </div>
 
         <div className="space-y-4">
            {isLoading ? (
              <div className="glass-card p-6 rounded-2xl text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-               正在加载备忘录...
+               {t('正在加载备忘录...')}
              </div>
            ) : filteredMemos.length === 0 ? (
              <div className="glass-card p-6 rounded-2xl text-center text-sm" style={{ color: 'var(--text-muted)' }}>
-               暂无备忘录
+               {t('暂无备忘录')}
              </div>
            ) : (
            filteredMemos.map(memo => (
@@ -149,12 +161,12 @@ export default function MemoDashboard() {
                 <div className="flex items-center gap-4">
                   <div className={`w-3 h-3 rounded-full ${memo.status === 'completed' ? 'bg-green-400' : 'bg-yellow-400'} shadow-[0_0_8px_currentColor]`} />
                   <div>
-                    <h3 className="font-bold text-lg" style={{ color: 'var(--text-main)' }}>{memo.title || '未命名备忘录'}</h3>
+                    <h3 className="font-bold text-lg" style={{ color: 'var(--text-main)' }}>{memo.title || t('未命名备忘录')}</h3>
                     <p className="text-xs opacity-60 font-medium" style={{ color: 'var(--text-muted)' }}>{formatMemoDate(memo)}</p>
                   </div>
                 </div>
                 <button className="px-4 py-1.5 rounded-lg bg-white/20 text-xs font-bold hover:bg-white/50 transition-all opacity-0 group-hover:opacity-100" style={{ color: 'var(--text-main)' }}>
-                  编辑
+                  {t('common.edit')}
                 </button>
              </div>
            ))) }

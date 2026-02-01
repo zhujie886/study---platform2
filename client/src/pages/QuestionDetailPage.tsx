@@ -6,6 +6,7 @@ import { ArrowLeftIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { qaAPI } from '@/services/api';
 import { useAuthStore } from '@/store/authStore';
 import AvailableSlotsPanel from '@/components/AvailableSlotsPanel';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 type Category = {
   id: string;
@@ -76,10 +77,10 @@ type Question = {
   canEdit?: boolean;
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  open: '未解决',
-  resolved: '已解决',
-  closed: '已关闭'
+const STATUS_LABEL_KEYS: Record<string, string> = {
+  open: 'question.status.open',
+  resolved: 'question.status.resolved',
+  closed: 'question.status.closed'
 };
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -90,13 +91,17 @@ const FILE_BASE = String(API_BASE).endsWith('/api')
   ? String(API_BASE).slice(0, -4)
   : String(API_BASE).replace(/\/$/, '');
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString('zh-CN');
+function formatDate(value: string, locale: string) {
+  return new Date(value).toLocaleString(locale);
 }
 
-function getDisplayName(user: User | null, isAnonymous?: boolean) {
-  if (isAnonymous || user?.isAnonymous) return '匿名用户';
-  return user?.username || '匿名用户';
+function getDisplayName(
+  user: User | null,
+  isAnonymous: boolean | undefined,
+  t: (key: string, vars?: Record<string, string | number>) => string
+) {
+  if (isAnonymous || user?.isAnonymous) return t('question.anonymous_user');
+  return user?.username || t('question.anonymous_user');
 }
 
 function resolveFileUrl(value?: string | null) {
@@ -126,6 +131,8 @@ export default function QuestionDetailPage() {
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const { token } = useAuthStore();
+  const { t, lang } = useLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'zh-CN';
 
   const fetchQuestion = async () => {
     if (!id) return;
@@ -134,8 +141,8 @@ export default function QuestionDetailPage() {
       const response = await qaAPI.getQuestion(id);
       setQuestion(response.data);
     } catch (error) {
-      console.error('加载问题失败', error);
-      toast.error('加载问题失败');
+      console.error(t('question.load_failed'), error);
+      toast.error(t('question.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -152,7 +159,7 @@ export default function QuestionDetailPage() {
   const handleFileUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     if (!token) {
-      toast.error('请先登录后上传附件');
+      toast.error(t('question.upload_login_required'));
       return;
     }
     try {
@@ -172,13 +179,13 @@ export default function QuestionDetailPage() {
         }))
         .filter((item: any) => item.url);
       if (uploaded.length === 0) {
-        toast.error('附件上传失败');
+        toast.error(t('question.upload_failed'));
         return;
       }
       setAttachments((prev) => [...prev, ...uploaded]);
     } catch (error) {
-      console.error('附件上传失败', error);
-      toast.error('附件上传失败');
+      console.error(t('question.upload_failed'), error);
+      toast.error(t('question.upload_failed'));
     } finally {
       setUploading(false);
     }
@@ -190,11 +197,11 @@ export default function QuestionDetailPage() {
 
     const trimmed = answerContent.trim();
     if (trimmed.length < 20) {
-      toast.error('回答至少 20 字');
+      toast.error(t('question.answer_too_short'));
       return;
     }
     if (uploading) {
-      toast.error('请等待附件上传完成');
+      toast.error(t('question.wait_upload'));
       return;
     }
 
@@ -206,14 +213,14 @@ export default function QuestionDetailPage() {
         isAnonymous: answerAnonymous,
         attachments
       });
-      toast.success('回答已提交');
+      toast.success(t('question.answer_submitted'));
       setAnswerContent('');
       setAnswerAnonymous(false);
       setAttachments([]);
       await fetchQuestion();
     } catch (error) {
-      console.error('提交回答失败', error);
-      toast.error('提交失败');
+      console.error(t('question.submit_failed'), error);
+      toast.error(t('question.submit_failed'));
     } finally {
       setSubmitting(false);
     }
@@ -225,15 +232,15 @@ export default function QuestionDetailPage() {
       setAcceptingId(answer.id);
       if (answer.isAccepted) {
         await qaAPI.revokeAccept(question.id);
-        toast.success('已取消采纳');
+        toast.success(t('question.accept_revoked'));
       } else {
         await qaAPI.acceptAnswer(question.id, answer.id);
-        toast.success('已采纳答案');
+        toast.success(t('question.answer_accepted'));
       }
       await fetchQuestion();
     } catch (error) {
-      console.error('采纳操作失败', error);
-      toast.error('操作失败');
+      console.error(t('question.action_failed'), error);
+      toast.error(t('question.action_failed'));
     } finally {
       setAcceptingId(null);
     }
@@ -244,11 +251,11 @@ export default function QuestionDetailPage() {
     try {
       setStatusUpdating(true);
       await qaAPI.resolveQuestion(question.id);
-      toast.success('已标记为已解决');
+      toast.success(t('question.resolved_marked'));
       await fetchQuestion();
     } catch (error) {
-      console.error('标记已解决失败', error);
-      toast.error('操作失败');
+      console.error(t('question.resolve_failed'), error);
+      toast.error(t('question.action_failed'));
     } finally {
       setStatusUpdating(false);
     }
@@ -259,11 +266,11 @@ export default function QuestionDetailPage() {
     try {
       setStatusUpdating(true);
       await qaAPI.reopenQuestion(question.id);
-      toast.success('已撤回已解决状态');
+      toast.success(t('question.reopened'));
       await fetchQuestion();
     } catch (error) {
-      console.error('撤回已解决失败', error);
-      toast.error('操作失败');
+      console.error(t('question.reopen_failed'), error);
+      toast.error(t('question.action_failed'));
     } finally {
       setStatusUpdating(false);
     }
@@ -274,7 +281,7 @@ export default function QuestionDetailPage() {
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
           <div className="inline-block animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600" />
-          <p className="mt-4 text-gray-500">加载中...</p>
+          <p className="mt-4 text-gray-500">{t('question.loading')}</p>
         </div>
       </div>
     );
@@ -284,10 +291,10 @@ export default function QuestionDetailPage() {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <p className="text-gray-600">没有找到这个问题</p>
+          <p className="text-gray-600">{t('question.not_found')}</p>
           <Link to="/community" className="relative z-20 inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm">
             <ArrowLeftIcon className="w-4 h-4" />
-            返回提问广场
+            {t('question.back_to_plaza')}
           </Link>
         </div>
       </div>
@@ -299,16 +306,16 @@ export default function QuestionDetailPage() {
       <div className="max-w-4xl mx-auto px-4 py-6">
         <Link to="/community" className="relative z-20 inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm">
           <ArrowLeftIcon className="w-4 h-4" />
-          返回提问广场
+          {t('question.back_to_plaza')}
         </Link>
 
         <div className="mt-4 bg-white rounded-2xl border border-gray-200 p-6">
           <div className="flex flex-wrap items-center gap-3">
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${question.status === 'resolved' ? 'bg-green-100 text-green-700' : question.status === 'closed' ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-700'}`}>
-              {STATUS_LABELS[question.status] || '未解决'}
+              {t(STATUS_LABEL_KEYS[question.status] || 'question.status.open')}
             </span>
-            <span className="text-sm text-gray-500">{question.category?.name || '未分类'}</span>
-            <span className="text-xs text-gray-400">{formatDate(question.createdAt)}</span>
+            <span className="text-sm text-gray-500">{question.category?.name || t('question.uncategorized')}</span>
+            <span className="text-xs text-gray-400">{formatDate(question.createdAt, locale)}</span>
           </div>
 
           {question.canEdit && (
@@ -320,7 +327,7 @@ export default function QuestionDetailPage() {
                   disabled={statusUpdating}
                   className="px-3 py-1 text-xs rounded-full border border-gray-200 text-gray-600 hover:text-gray-800 disabled:opacity-50"
                 >
-                  撤回已解决
+                  {t('question.reopen')}
                 </button>
               ) : (
                 <button
@@ -329,7 +336,7 @@ export default function QuestionDetailPage() {
                   disabled={statusUpdating}
                   className="px-3 py-1 text-xs rounded-full border border-green-200 text-green-700 hover:text-green-800 disabled:opacity-50"
                 >
-                  标记已解决
+                  {t('question.resolve')}
                 </button>
               )}
             </div>
@@ -340,7 +347,7 @@ export default function QuestionDetailPage() {
 
           {question.attachments?.length > 0 && (
             <div className="mt-4">
-              <div className="text-sm font-semibold text-gray-700">附件</div>
+              <div className="text-sm font-semibold text-gray-700">{t('question.attachments')}</div>
               <div className="mt-2 space-y-2">
                 {question.attachments.map((item) => (
                   <a
@@ -369,35 +376,35 @@ export default function QuestionDetailPage() {
 
           <div className="mt-6 flex flex-wrap items-center justify-between text-sm text-gray-500">
             <div className="flex items-center gap-4">
-              <span>回答 {question.answerCount}</span>
-              <span>浏览 {question.viewCount}</span>
+              <span>{t('question.answer_count', { count: question.answerCount })}</span>
+              <span>{t('question.view_count', { count: question.viewCount })}</span>
             </div>
-            <span>{getDisplayName(question.user, question.isAnonymous)}</span>
+            <span>{getDisplayName(question.user, question.isAnonymous, t)}</span>
           </div>
         </div>
 
         <AvailableSlotsPanel
           userId={question.isAnonymous ? null : question.user?.id}
-          title="提问者可预约时间"
+          title={t('question.slots_title')}
         />
 
         <div className="mt-6 bg-white rounded-2xl border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900">回答问题</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('question.answer_title')}</h2>
           <form onSubmit={handleAnswerSubmit} className="mt-4 space-y-4">
             <textarea
               value={answerContent}
               onChange={(event) => setAnswerContent(event.target.value)}
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 resize-none"
               rows={6}
-              placeholder="写下你的回答（支持 Markdown）"
+              placeholder={t('question.answer_placeholder')}
               required
             />
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">上传附件（可选）</label>
+              <label className="block text-sm font-medium text-gray-700">{t('question.upload_label')}</label>
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-white ${uploading ? 'bg-gray-400' : 'bg-gray-900 hover:bg-gray-800'} cursor-pointer`}>
-                  {uploading ? '上传中...' : '选择文件'}
+                  {uploading ? t('question.uploading') : t('question.choose_file')}
                   <input
                     type="file"
                     multiple
@@ -406,7 +413,7 @@ export default function QuestionDetailPage() {
                     onChange={(event) => handleFileUpload(event.target.files)}
                   />
                 </label>
-                <span className="text-xs text-gray-500">支持任意格式，最多 10 个文件，单个 ≤ 100MB</span>
+                <span className="text-xs text-gray-500">{t('question.upload_hint')}</span>
               </div>
               {attachments.length > 0 && (
                 <div className="mt-3 space-y-2 text-sm">
@@ -433,7 +440,7 @@ export default function QuestionDetailPage() {
                 onChange={(event) => setAnswerAnonymous(event.target.checked)}
                 className="rounded border-gray-300"
               />
-              匿名回答
+              {t('question.anonymous_answer')}
             </label>
 
             <button
@@ -441,15 +448,15 @@ export default function QuestionDetailPage() {
               disabled={submitting || uploading}
               className="w-full md:w-auto px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
-              {submitting ? '提交中...' : (uploading ? '上传中...' : '提交回答')}
+              {submitting ? t('question.submitting') : (uploading ? t('question.uploading') : t('question.submit_answer'))}
             </button>
           </form>
         </div>
 
         <div className="mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">全部回答</h2>
-            <span className="text-sm text-gray-500">{question.answers?.length || 0} 条</span>
+            <h2 className="text-lg font-semibold text-gray-900">{t('question.answers_title')}</h2>
+            <span className="text-sm text-gray-500">{t('question.count_label', { count: question.answers?.length || 0 })}</span>
           </div>
 
           {question.answers && question.answers.length > 0 ? (
@@ -462,9 +469,9 @@ export default function QuestionDetailPage() {
                   <div className="flex items-center gap-2">
                     {answer.isAccepted && <CheckCircleIcon className="w-5 h-5 text-green-600" />}
                     <span className="font-medium text-gray-900">
-                      {getDisplayName(answer.user, answer.isAnonymous)}
+                      {getDisplayName(answer.user, answer.isAnonymous, t)}
                     </span>
-                    <span className="text-xs text-gray-400">{formatDate(answer.createdAt)}</span>
+                    <span className="text-xs text-gray-400">{formatDate(answer.createdAt, locale)}</span>
                   </div>
                   {question.canAccept && (
                     <button
@@ -473,7 +480,7 @@ export default function QuestionDetailPage() {
                       disabled={acceptingId === answer.id}
                       className={`text-sm px-3 py-1 rounded-full border ${answer.isAccepted ? 'border-green-300 text-green-700' : 'border-gray-300 text-gray-600 hover:text-primary-600'}`}
                     >
-                      {answer.isAccepted ? '取消采纳' : '采纳'}
+                      {answer.isAccepted ? t('question.unaccept') : t('question.accept')}
                     </button>
                   )}
                 </div>
@@ -499,7 +506,7 @@ export default function QuestionDetailPage() {
             ))
           ) : (
             <div className="bg-white rounded-2xl border border-gray-200 p-6 text-center text-gray-500">
-              暂无回答，来成为第一个回答的人吧
+              {t('question.no_answers')}
             </div>
           )}
         </div>

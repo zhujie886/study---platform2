@@ -1,0 +1,529 @@
+client\src\App.tsx:43:{/* === 管理员路由 === */}
+client\src\App.tsx:49:{/* === 用户认证 === */}
+client\src\App.tsx:53:{/* === 公共服务页 === */}
+client\src\App.tsx:57:{/* === 独立全屏页面 (视频会议) === */}
+client\src\App.tsx:83:{/* === 主应用布局 (带侧边栏) === */}
+client\src\App.tsx:105:{/* 侧边栏点击会议只去大厅 */}
+client\src\main.tsx:22:// 全局错误处理
+client\src\main.tsx:36:staleTime: 5 * 60 * 1000, // 5分钟
+client\src\components\MeetingEnhancements.tsx:3:* 会议增强组件集合
+client\src\components\MeetingEnhancements.tsx:5:* 包含：创建会议弹窗、弹幕组件
+client\src\components\MeetingEnhancements.tsx:40:// ========== 创建会议弹窗 ==========
+client\src\components\MeetingEnhancements.tsx:219:{/* 链接设置 */}
+client\src\components\MeetingEnhancements.tsx:289:{/* 会议密码 */}
+client\src\components\MeetingEnhancements.tsx:319:{/* 预定时间 */}
+client\src\components\MeetingEnhancements.tsx:349:{/* 邀请用户提示 */}
+client\src\components\MeetingEnhancements.tsx:367:{/* 提交按钮 */}
+client\src\components\MeetingEnhancements.tsx:413:// ========== 弹幕组件 ==========
+client\src\components\MeetingEnhancements.tsx:518:// 置顶弹幕
+client\src\components\MeetingEnhancements.tsx:522:// 普通弹幕
+client\src\components\MeetingEnhancements.tsx:532:{/* 置顶弹幕区域 */}
+client\src\components\MeetingEnhancements.tsx:545:{/* 滚动弹幕区域 */}
+client\src\components\MeetingEnhancements.tsx:585:{/* 弹幕输入框 */}
+client\src\components\MeetingLayout.tsx:7:* 会议独立布局
+client\src\components\MeetingLayout.tsx:9:* 提供一个无侧边栏、无导航栏的沉浸式环境
+client\src\components\MemoStatCard.tsx:53:// 核心改变：使用玻璃拟态 glass-panel，不再是纯色背景
+client\src\components\MemoStatCard.tsx:69:{/* 装饰性光晕 */}
+client\src\components\ParticleEffectLayer.tsx:39:// ?? 樱花：水蜜桃粉，无边框，柔焦
+client\src\components\ParticleEffectLayer.tsx:63:// ?? 恒星核心：高亮光球
+client\src\components\ParticleEffectLayer.tsx:81:// ??? 古希腊：金币/叶片
+client\src\components\ParticleEffectLayer.tsx:91:// ??? 莫奈
+client\src\components\ParticleEffectLayer.tsx:101:// FIXME: AI代码生成未完成 其他通用形状
+client\src\components\ParticleEffectLayer.tsx:147:const gParams = new Float32Array(count * 3); // 存储星系专用参数: [radius, angleOffset, speed]
+client\src\components\ParticleEffectLayer.tsx:157:// 通用初始化
+client\src\components\ParticleEffectLayer.tsx:181:// ?? 星系专用初始化 (Galaxy Init)
+client\src\components\ParticleEffectLayer.tsx:185:// 计算螺旋位置
+client\src\components\ParticleEffectLayer.tsx:187:const radius = Math.random() * 25; // 半径
+client\src\components\ParticleEffectLayer.tsx:189:const branches = 3; // 3条旋臂
+client\src\components\ParticleEffectLayer.tsx:191:const spinAngle = radius * 0.5; // 核心旋转快，外围旋转慢
+client\src\components\ParticleEffectLayer.tsx:197:// 随机散布，让星系看起来自然
+client\src\components\ParticleEffectLayer.tsx:207:gParams[i * 3] = radius; // 存半径
+client\src\components\ParticleEffectLayer.tsx:209:gParams[i * 3 + 1] = branchAngle + spinAngle + randomX; // 存初始角度
+client\src\components\ParticleEffectLayer.tsx:211:gParams[i * 3 + 2] = randomZ * 2; // 存垂直偏离度
+client\src\components\ParticleEffectLayer.tsx:215:// 颜色微调：核心亮，外围暗
+client\src\components\ParticleEffectLayer.tsx:219:cols[i * 3] = 1.0; cols[i * 3 + 1] = 0.9; cols[i * 3 + 2] = 0.6; // 核心金
+client\src\components\ParticleEffectLayer.tsx:249:// === ?? 星系旋转逻辑 (Galaxy Physics) ===
+client\src\components\ParticleEffectLayer.tsx:261:// 核心转得快，外围转得慢 (Keplerian-ish)
+client\src\components\ParticleEffectLayer.tsx:271:positions[idx + 1] = Math.sin(currentAngle) * radius * 0.8; // 稍微压扁一点
+client\src\components\ParticleEffectLayer.tsx:273:positions[idx + 2] = zOffset + Math.sin(time + phases[i]) * 0.5; // Z轴微动
+client\src\components\ParticleEffectLayer.tsx:279:// === ?? 樱花逻辑 ===
+client\src\components\ParticleEffectLayer.tsx:295:// === 通用逻辑 ===
+client\src\components\ParticleEffectLayer.tsx:319:// 整体姿态微调
+client\src\components\ParticleEffectLayer.tsx:323:// 让星系倾斜一点，更有立体感
+client\src\components\ParticleEffectLayer.tsx:387:// 2. Van Gogh (星系)
+client\src\components\ParticleEffectLayer.tsx:405:// 其他主题
+client\src\components\ParticleEffectLayer.tsx:415:if (t.includes('nebula')) return { count: 400, size: 0.8, colors: ['#e9d5ff', '#ffffff'], shape: 'star_core', move: 'galaxy', speed: 0.5, blend: THREE.AdditiveBlending }; // Nebula也用星系
+client\src\components\ProtectedRoute.tsx:9:// 只要 Store 显示已登录，或者 LocalStorage 里有 Token，就放行
+client\src\components\RichTextEditor.tsx:111:{/* 工具栏 */}
+client\src\components\RichTextEditor.tsx:220:{/* 编辑器内容 */}
+client\src\components\RouteRestorer.tsx:11:* 这个组件需要被添加到 App.tsx 或 MainLayout 中
+client\src\components\RouteRestorer.tsx:13:* 它的作用是：
+client\src\components\RouteRestorer.tsx:15:* 1. 记录当前所在的页面路径
+client\src\components\RouteRestorer.tsx:17:* 2. 如果页面在根目录("/")加载，但记录显示上次在"/personalize"，则自动跳转回去
+client\src\components\RouteRestorer.tsx:29:// 记录路径
+client\src\components\RouteRestorer.tsx:43:// 恢复路径
+client\src\components\RouteRestorer.tsx:49:// 如果当前是首页，且上次在个性化页面，则跳转
+client\src\components\ThemeBackground.tsx:124:// === ??? Greek: 古希腊神庙 (大理石+圣光) ===
+client\src\components\ThemeBackground.tsx:132:{/* 大理石纹理底色 */}
+client\src\components\ThemeBackground.tsx:138:{/* 顶部圣光 */}
+client\src\components\ThemeBackground.tsx:142:{/* 底部阴影 */}
+client\src\components\ThemeBackground.tsx:156:// === ??? Monet: 睡莲池 (印象派) ===
+client\src\components\ThemeBackground.tsx:164:{/* 蓝绿紫混色 */}
+client\src\components\ThemeBackground.tsx:170:{/* 光斑 */}
+client\src\components\ThemeBackground.tsx:188:// === ?? Klimt: 金色奢华 (黑金) ===
+client\src\components\ThemeBackground.tsx:200:{/* 金色几何装饰 */}
+client\src\components\ThemeBackground.tsx:274:// === 通用 ===
+client\src\components\UltimatePet.tsx:28:// 1) 艺术级矢量绘图（更强“3D体积感”与材质）
+client\src\components\UltimatePet.tsx:34:{/* --- 体积软光：外投影 + 高光 + 轻微纹理 --- */}
+client\src\components\UltimatePet.tsx:79:{/* --- 内阴影：让形体更“凹” --- */}
+client\src\components\UltimatePet.tsx:89:{/* --- 柔光发光 --- */}
+client\src\components\UltimatePet.tsx:98:{/* --- 龙材质（更立体的渐变 + 边缘轮廓光） --- */}
+client\src\components\UltimatePet.tsx:129:{/* --- 狐狸材质 --- */}
+client\src\components\UltimatePet.tsx:136:{/* --- 猫材质 --- */}
+client\src\components\UltimatePet.tsx:143:{/* --- 史莱姆材质 --- */}
+client\src\components\UltimatePet.tsx:150:{/* --- 凤凰材质 --- */}
+client\src\components\UltimatePet.tsx:157:{/* --- 狼材质 --- */}
+client\src\components\UltimatePet.tsx:164:{/* --- 猫头鹰材质 --- */}
+client\src\components\UltimatePet.tsx:171:{/* --- 机械宠物材质 --- */}
+client\src\components\UltimatePet.tsx:178:{/* --- 宝石/能量 --- */}
+client\src\components\UltimatePet.tsx:190:// 2) 宠物图鉴（多宠物、统一口径）
+client\src\components\UltimatePet.tsx:201:dragon: { name: '龙', accent: 'emerald', eggColor: '#34D399', tagline: '火与风的幼王', unlockLv: 1 },
+client\src\components\UltimatePet.tsx:202:fox: { name: '狐', accent: 'orange', eggColor: '#FB923C', tagline: '狡黠又黏人', unlockLv: 1 },
+client\src\components\UltimatePet.tsx:203:cat: { name: '猫', accent: 'slate', eggColor: '#94A3B8', tagline: '高冷但很治愈', unlockLv: 2 },
+client\src\components\UltimatePet.tsx:204:slime: { name: '史莱姆', accent: 'green', eggColor: '#22C55E', tagline: '弹弹软软的能量体', unlockLv: 3 },
+client\src\components\UltimatePet.tsx:205:wolf: { name: '狼', accent: 'zinc', eggColor: '#71717A', tagline: '守护与战意', unlockLv: 4 },
+client\src\components\UltimatePet.tsx:206:phoenix: { name: '凤凰', accent: 'red', eggColor: '#EF4444', tagline: '浴火重生的光羽', unlockLv: 5 },
+client\src\components\UltimatePet.tsx:207:owl: { name: '鸮', accent: 'violet', eggColor: '#A78BFA', tagline: '夜色里的智者', unlockLv: 6 },
+client\src\components\UltimatePet.tsx:208:robot: { name: '机灵', accent: 'blue', eggColor: '#3B82F6', tagline: '可升级的机械伙伴', unlockLv: 7 },
+client\src\components\UltimatePet.tsx:217:// 3) 画法（更“3D”）
+client\src\components\UltimatePet.tsx:257:// --- 3D感·龙 ---
+client\src\components\UltimatePet.tsx:280:{/* 阶段特效：幼体/成体差异化 */}
+client\src\components\UltimatePet.tsx:308:{/* 尾巴（前后层次） */}
+client\src\components\UltimatePet.tsx:326:{/* 尾鳍光 */}
+client\src\components\UltimatePet.tsx:336:{/* 后翅膀 */}
+client\src\components\UltimatePet.tsx:349:{/* 身体体积（阴影层） */}
+client\src\components\UltimatePet.tsx:356:{/* 身体（主层） */}
+client\src\components\UltimatePet.tsx:362:{/* 肚皮（亮层） */}
+client\src\components\UltimatePet.tsx:369:{/* 轮廓光（让更3D） */}
+client\src\components\UltimatePet.tsx:379:{/* 前翅膀 */}
+client\src\components\UltimatePet.tsx:392:{/* 小爪子（前后层次） */}
+client\src\components\UltimatePet.tsx:398:{/* 头部 */}
+client\src\components\UltimatePet.tsx:400:{/* 头型：底层阴影 */}
+client\src\components\UltimatePet.tsx:407:{/* 头型：主层 */}
+client\src\components\UltimatePet.tsx:413:{/* 角 */}
+client\src\components\UltimatePet.tsx:417:{/* 眼睛/表情 */}
+client\src\components\UltimatePet.tsx:433:{/* 眉毛 */}
+client\src\components\UltimatePet.tsx:451:{/* 腮红 */}
+client\src\components\UltimatePet.tsx:457:{/* 嘴巴 */}
+client\src\components\UltimatePet.tsx:475:{/* 胸口能量宝石 */}
+client\src\components\UltimatePet.tsx:483:{/* 火焰：幼体=火花，成体=喷火流（随心情/能量变化） */}
+client\src\components\UltimatePet.tsx:540:// --- 狐狸 ---
+client\src\components\UltimatePet.tsx:547:{/* 蓬松尾巴 */}
+client\src\components\UltimatePet.tsx:561:{/* 身体 */}
+client\src\components\UltimatePet.tsx:565:{/* 头 */}
+client\src\components\UltimatePet.tsx:598:// --- 猫 ---
+client\src\components\UltimatePet.tsx:605:{/* 尾巴 */}
+client\src\components\UltimatePet.tsx:618:{/* 身体 */}
+client\src\components\UltimatePet.tsx:624:{/* 肚皮 */}
+client\src\components\UltimatePet.tsx:632:{/* 头 */}
+client\src\components\UltimatePet.tsx:635:{/* 耳朵 */}
+client\src\components\UltimatePet.tsx:638:{/* 耳内 */}
+client\src\components\UltimatePet.tsx:642:{/* 脸 */}
+client\src\components\UltimatePet.tsx:664:{/* 胡须 */}
+client\src\components\UltimatePet.tsx:677:// --- 史莱姆 ---
+client\src\components\UltimatePet.tsx:694:{/* 眼睛 */}
+client\src\components\UltimatePet.tsx:714:{/* 高光 */}
+client\src\components\UltimatePet.tsx:721:// --- 凤凰 ---
+client\src\components\UltimatePet.tsx:727:{/* 光翼 */}
+client\src\components\UltimatePet.tsx:747:{/* 身体 */}
+client\src\components\UltimatePet.tsx:755:{/* 头 */}
+client\src\components\UltimatePet.tsx:759:{/* 眼 */}
+client\src\components\UltimatePet.tsx:771:{/* 火羽尾流 */}
+client\src\components\UltimatePet.tsx:786:// --- 狼 ---
+client\src\components\UltimatePet.tsx:793:{/* 身体 */}
+client\src\components\UltimatePet.tsx:797:{/* 头 */}
+client\src\components\UltimatePet.tsx:823:{/* 月牙点缀 */}
+client\src\components\UltimatePet.tsx:830:// --- 鸮（猫头鹰） ---
+client\src\components\UltimatePet.tsx:848:{/* 眼圈 */}
+client\src\components\UltimatePet.tsx:866:{/* 喙 */}
+client\src\components\UltimatePet.tsx:870:{/* 小翅 */}
+client\src\components\UltimatePet.tsx:878:// --- 机械宠物 ---
+client\src\components\UltimatePet.tsx:885:{/* 身体 */}
+client\src\components\UltimatePet.tsx:888:{/* 屏幕 */}
+client\src\components\UltimatePet.tsx:892:{/* 眼睛 */}
+client\src\components\UltimatePet.tsx:913:{/* 天线 */}
+client\src\components\UltimatePet.tsx:926:{/* 底座小喷气 */}
+client\src\components\UltimatePet.tsx:937:// --- 蛋（通用） ---
+client\src\components\UltimatePet.tsx:956:{/* 裂纹与光 */}
+client\src\components\UltimatePet.tsx:1016:// 4) 游戏引擎（玩法可升级：商店、升级、图鉴解锁）
+client\src\components\UltimatePet.tsx:1023:autoCare: number; // 自动护理概率
+client\src\components\UltimatePet.tsx:1036:/** 破壳时间戳（用于「七日进化」：幼体→成体） */
+client\src\components\UltimatePet.tsx:1104:// 默认皮肤：留空，默认使用内置的矢量 3D 动画外观（更“会动”）。
+client\src\components\UltimatePet.tsx:1105:// 你可以在「图鉴 → 外观皮肤」里，为每个阶段（蛋/幼体/成体）分别上传 PNG/JPG/WebP/GIF 来覆盖。
+client\src\components\UltimatePet.tsx:1129:// 5) 主组件（UltimatePet Ultra）
+client\src\components\UltimatePet.tsx:1136:// 数据兼容：旧存档可能没有 hatchedAt
+client\src\components\UltimatePet.tsx:1180:// 持久化
+client\src\components\UltimatePet.tsx:1186:// 窗口尺寸变化：更新视口并确保面板不会漂出屏幕
+client\src\components\UltimatePet.tsx:1197:// 展开/收起或尺寸变化时：自动把面板“吸附”回可视区域内，避免弹出屏幕
+client\src\components\UltimatePet.tsx:1203:// 核心循环（数值变动）
+client\src\components\UltimatePet.tsx:1209:// 七日进化：幼体 -> 成体（从破壳算起，满 7 天自动解锁成体形态）
+client\src\components\UltimatePet.tsx:1226:// 状态联动（脏/饿会影响心情与健康）
+client\src\components\UltimatePet.tsx:1232:// 轻度自动护理（升级后概率触发）
+client\src\components\UltimatePet.tsx:1254:// 拖动结束：持久化并强制 clamp，避免拖出屏幕或展开后溢出
+client\src\components\UltimatePet.tsx:1265:// 外观皮肤（图片化）：默认使用内置矢量 3D 动画；你可以上传自定义图片/GIF 覆盖每个阶段外观。
+client\src\components\UltimatePet.tsx:1282:// 皮肤上传：支持按阶段选择（蛋/幼体/成体），便于做“三阶段不同形象”。
+client\src\components\UltimatePet.tsx:1322:// 体积控制：避免 localStorage 被塞爆（约 4~5MB 以上可能失败）
+client\src\components\UltimatePet.tsx:1348:// 多级连跳
+client\src\components\UltimatePet.tsx:1450:// 升级与进化
+client\src\components\UltimatePet.tsx:1588:// 渲染：场景背景（室内/室外 + 昼夜与氛围）
+client\src\components\UltimatePet.tsx:1625:收起态：玻璃胶囊
+client\src\components\UltimatePet.tsx:1645:{/* 红点：饥饿或脏 */}
+client\src\components\UltimatePet.tsx:1652:{/* 经验条微提示 */}
+client\src\components\UltimatePet.tsx:1660:展开态：主面板
+client\src\components\UltimatePet.tsx:1671:{/* 顶部拖拽栏 */}
+client\src\components\UltimatePet.tsx:1701:{/* 场景区 */}
+client\src\components\UltimatePet.tsx:1703:{/* 背景动态元素 */}
+client\src\components\UltimatePet.tsx:1707:{/* 昼夜图标 */}
+client\src\components\UltimatePet.tsx:1720:{/* 地平线/地面 */}
+client\src\components\UltimatePet.tsx:1727:{/* 宠物主体 */}
+client\src\components\UltimatePet.tsx:1739:{/* 顶部信息条：金币与经验 */}
+client\src\components\UltimatePet.tsx:1750:{/* 通知 */}
+client\src\components\UltimatePet.tsx:1764:{/* 孵化提示 */}
+client\src\components\UltimatePet.tsx:1769:点击孵化（解锁玩法从 Lv.2 开始）
+client\src\components\UltimatePet.tsx:1775:{/* 控制台 */}
+client\src\components\UltimatePet.tsx:1779:<TabButton active={tab === 'care'} icon={Heart} label="养成" onClick={() => setTab('care')} />
+client\src\components\UltimatePet.tsx:1780:<TabButton active={tab === 'collection'} icon={Grid3X3} label="图鉴" onClick={() => setTab('collection')} />
+client\src\components\UltimatePet.tsx:1781:<TabButton active={tab === 'shop'} icon={ShoppingBag} label="商店" onClick={() => setTab('shop')} />
+client\src\components\UltimatePet.tsx:1782:<TabButton active={tab === 'upgrades'} icon={Wand2} label="升级" onClick={() => setTab('upgrades')} />
+client\src\components\UltimatePet.tsx:1787:{/* ============ 养成 ============ */}
+client\src\components\UltimatePet.tsx:1790:{/* 属性 */}
+client\src\components\UltimatePet.tsx:1792:<StatItem icon={Heart} color="text-rose-500" val={pet.health} label="健康" />
+client\src\components\UltimatePet.tsx:1793:<StatItem icon={Utensils} color="text-orange-500" val={100 - pet.hunger} label="饱食" />
+client\src\components\UltimatePet.tsx:1794:<StatItem icon={Bath} color="text-cyan-500" val={pet.cleanliness} label="清洁" />
+client\src\components\UltimatePet.tsx:1795:<StatItem icon={Sparkles} color="text-amber-500" val={pet.mood} label="心情" />
+client\src\components\UltimatePet.tsx:1796:<StatItem icon={Zap} color="text-indigo-500" val={pet.energy} label="精力" />
+client\src\components\UltimatePet.tsx:1799:{/* 动作 */}
+client\src\components\UltimatePet.tsx:1807:label={pet.isOutside ? '回家' : '探险'}
+client\src\components\UltimatePet.tsx:1814:{/* 次级动作 */}
+client\src\components\UltimatePet.tsx:1820:{/* 背包小条 */}
+client\src\components\UltimatePet.tsx:1830:<span className="font-bold text-slate-700">下一次升级需要 {Math.max(0, expNeeded(pet.level) - pet.exp)} 经验</span>
+client\src\components\UltimatePet.tsx:1836:{/* ============ 图鉴 ============ */}
+client\src\components\UltimatePet.tsx:1840:<div className="text-sm font-extrabold text-slate-800">宠物图鉴</div>
+client\src\components\UltimatePet.tsx:1841:<div className="text-xs text-slate-500">按等级逐步解锁（当前 Lv.{pet.level}）</div>
+client\src\components\UltimatePet.tsx:1875:{/* 外观皮肤（图片化） */}
+client\src\components\UltimatePet.tsx:1879:<div className="text-sm font-extrabold text-slate-800">外观皮肤（图片化）</div>
+client\src\components\UltimatePet.tsx:1881:为「蛋 / 幼体 / 成体」分别上传图片（PNG/JPG/WebP/GIF），即可替换该阶段外观；GIF/WebP 会自动播放（无边框、透明背景取决于图片本身）。
+client\src\components\UltimatePet.tsx:1891:恢复默认
+client\src\components\UltimatePet.tsx:1896:<div className="text-[11px] font-extrabold text-slate-700 mr-1">阶段：</div>
+client\src\components\UltimatePet.tsx:1908:{s === 'egg' ? '蛋' : s === 'baby' ? '幼体' : '成体'}
+client\src\components\UltimatePet.tsx:1923:点击上传：
+client\src\components\UltimatePet.tsx:1924:{skinStage === 'egg' ? '蛋' : skinStage === 'baby' ? '幼体' : '成体'}
+client\src\components\UltimatePet.tsx:1926:<div className="text-[11px] text-slate-500 mt-0.5">建议 &lt; 1.2MB，避免存储失败</div>
+client\src\components\UltimatePet.tsx:1943:提示：如果你想用「动图」效果，优先用透明背景的 GIF / WebP；图片是否“无边框”取决于素材本身是否带底色。
+client\src\components\UltimatePet.tsx:1953:<div className="text-sm font-extrabold text-slate-800">解锁路线</div>
+client\src\components\UltimatePet.tsx:1955:Lv.2 解锁探险与猫；Lv.3 解锁史莱姆；Lv.4 解锁狼；Lv.5 解锁凤凰并进化为成体；Lv.6 解锁鸮；Lv.7 解锁机灵（可升级）。
+client\src\components\UltimatePet.tsx:1963:{/* ============ 商店 ============ */}
+client\src\components\UltimatePet.tsx:1967:<div className="text-sm font-extrabold text-slate-800">商店</div>
+client\src\components\UltimatePet.tsx:1968:<div className="text-xs text-slate-500">购买道具让互动更强</div>
+client\src\components\UltimatePet.tsx:1972:<ShopItem icon={Utensils} title="食物" desc="喂食效果更强" price={18} onBuy={() => buy('food')} />
+client\src\components\UltimatePet.tsx:1973:<ShopItem icon={Gamepad2} title="玩具" desc="玩耍收益更高" price={22} onBuy={() => buy('toy')} />
+client\src\components\UltimatePet.tsx:1974:<ShopItem icon={Bath} title="清洁" desc="清洁恢复更多" price={24} onBuy={() => buy('bath')} />
+client\src\components\UltimatePet.tsx:1975:<ShopItem icon={Gift} title="礼物盒" desc="心情拉满一次" price={60} onBuy={() => buy('giftBox')} />
+client\src\components\UltimatePet.tsx:1984:<div className="text-sm font-extrabold text-slate-800">小技巧</div>
+client\src\components\UltimatePet.tsx:1986:探险时衰减更快，但经验和金币更高；如果精力低于 18，会自动进入“睡眠表情”，建议先休息或清洁。
+client\src\components\UltimatePet.tsx:1994:{/* ============ 升级 ============ */}
+client\src\components\UltimatePet.tsx:1998:<div className="text-sm font-extrabold text-slate-800">升级</div>
+client\src\components\UltimatePet.tsx:1999:<div className="text-xs text-slate-500">玩法随升级变强</div>
+client\src\components\UltimatePet.tsx:2005:title="经验加成"
+client\src\components\UltimatePet.tsx:2006:desc="所有互动获得更多经验"
+client\src\components\UltimatePet.tsx:2009:priceText={`当前：+${pet.upgrades.xpBoost * 8}%`}
+client\src\components\UltimatePet.tsx:2013:title="饥饿减速"
+client\src\components\UltimatePet.tsx:2014:desc="基础饥饿增长变慢"
+client\src\components\UltimatePet.tsx:2017:priceText={`当前：-${Math.round(pet.upgrades.slowHunger * 6)}%`}
+client\src\components\UltimatePet.tsx:2021:title="恢复增益"
+client\src\components\UltimatePet.tsx:2022:desc="休息/清洁恢复更多精力"
+client\src\components\UltimatePet.tsx:2025:priceText={`当前：+${Math.round(pet.upgrades.regenEnergy * 6)}%`}
+client\src\components\UltimatePet.tsx:2029:title="自动护理"
+client\src\components\UltimatePet.tsx:2030:desc="循环中有概率自动使用道具"
+client\src\components\UltimatePet.tsx:2033:priceText={`当前：${Math.round(pet.upgrades.autoCare * 2)}%/Tick`}
+client\src\components\UltimatePet.tsx:2043:<div className="text-sm font-extrabold text-slate-800">升级解锁的“玩法提升”</div>
+client\src\components\UltimatePet.tsx:2045:你会看到：更快升级、更慢饥饿、更强恢复、甚至自动护理。配合图鉴解锁，多宠物切换与进化会越来越有“游戏感”。
+client\src\components\UltimatePet.tsx:2065:// 6) UI 组件
+client\src\components\UltimatePet.tsx:2209:购买升级
+client\src\components\UserCard.tsx:3:* 用户卡片组件
+client\src\components\UserCard.tsx:5:* 点击任何头像触发，整合社交+会议功能
+client\src\components\UserCard.tsx:129:console.error('获取用户信息失败:', error);
+client\src\components\UserCard.tsx:172:// 跳转到私信页面（待实现）
+client\src\components\UserCard.tsx:231:{/* 头部 */}
+client\src\components\UserCard.tsx:276:{/* 内容 */}
+client\src\components\UserCard.tsx:280:{/* 个人简介 */}
+client\src\components\UserCard.tsx:290:{/* 操作按钮 */}
+client\src\components\UserCard.tsx:349:{/* 近期会议 */}
+client\src\components\UserCard.tsx:373:{/* 查看完整主页 */}
+client\src\components\UserProfileModal.tsx:11:user: any; // 使用你的 AuthStore 类型
+client\src\components\UserProfileModal.tsx:34:// 这里可以添加上传到服务器的逻辑
+client\src\layouts\DashboardLayout.tsx:14:{/* 顶部导航 */}
+client\src\layouts\DashboardLayout.tsx:22:退出登录
+client\src\layouts\DashboardLayout.tsx:28:{/* 左侧侧边栏 */}
+client\src\layouts\DashboardLayout.tsx:32:🏠 首页 (Home)
+client\src\layouts\DashboardLayout.tsx:35:📅 日历 (Calendar)
+client\src\layouts\DashboardLayout.tsx:38:📝 预约 (Booking)
+client\src\layouts\DashboardLayout.tsx:43:{/* 主内容区域 - 路由出口 */}
+client\src\pages\BookingPage.tsx:10:pending: '待确认',
+client\src\pages\BookingPage.tsx:11:confirmed: '已确认',
+client\src\pages\BookingPage.tsx:12:cancelled: '已取消',
+client\src\pages\BookingPage.tsx:13:completed: '已完成',
+client\src\pages\BookingPage.tsx:14:reviewed: '已评价'
+client\src\pages\CalendarPage.tsx:36:// WebSocket实时更新
+client\src\pages\CalendarPage.tsx:189:{/* 头部 */}
+client\src\pages\CalendarPage.tsx:195:{/* 日历 */}
+client\src\pages\CalendarPage.tsx:228:{/* 事件模态框 */}
+client\src\pages\CalendarPage.tsx:239:{/* 事件标题 */}
+client\src\pages\CalendarPage.tsx:255:{/* 描述 */}
+client\src\pages\CalendarPage.tsx:271:{/* 开始时间 */}
+client\src\pages\CalendarPage.tsx:301:{/* 地点 */}
+client\src\pages\CalendarPage.tsx:317:{/* 颜色 */}
+client\src\pages\CalendarPage.tsx:338:{/* 全天事件 */}
+client\src\pages\CalendarPage.tsx:352:{/* 按钮 */}
+client\src\pages\CommunityPage.tsx:73:open: '未解决',
+client\src\pages\CommunityPage.tsx:74:resolved: '已解决',
+client\src\pages\CommunityPage.tsx:75:closed: '已关闭'
+client\src\pages\EnhancedVideoRoomPage.tsx:3:* 增强版视频会议界面 - 集成WebAR
+client\src\pages\EnhancedVideoRoomPage.tsx:24:// 懒加载WebAR组件，因为它比较大
+client\src\pages\EnhancedVideoRoomPage.tsx:62:// 其他UI相关的函数保持不变...
+client\src\pages\EnhancedVideoRoomPage.tsx:73:{/* 顶部标题栏 */}
+client\src\pages\EnhancedVideoRoomPage.tsx:75:{/* ... 标题栏内容保持不变 ... */}
+client\src\pages\EnhancedVideoRoomPage.tsx:78:{/* 主内容区域 */}
+client\src\pages\EnhancedVideoRoomPage.tsx:80:{/* AR 视频画面区 */}
+client\src\pages\EnhancedVideoRoomPage.tsx:86:{/* 参与者视频网格（保持不变） */}
+client\src\pages\EnhancedVideoRoomPage.tsx:88:{/* ... 参与者列表保持不变 ... */}
+client\src\pages\EnhancedVideoRoomPage.tsx:91:{/* 底部控制栏 */}
+client\src\pages\EnhancedVideoRoomPage.tsx:94:{/* ... 控制按钮保持不变 ... */}
+client\src\pages\EnhancedVideoRoomPage.tsx:109:{/* 右侧边栏 (保持不变) */}
+client\src\pages\EnhancedVideoRoomPage.tsx:112:{/* ... 侧边栏内容保持不变 ... */}
+client\src\pages\HomePage.tsx:4:// HomePage 缺失时的兼容：默认展示 Dashboard
+client\src\pages\Login.tsx:93:{/* 管理员入口 - 修复跳转 */}
+client\src\pages\LoginPage.tsx:10:// 增加一个状态来显示详细错误
+client\src\pages\LoginPage.tsx:40:console.log('🚀 开始登录请求:', { email });
+client\src\pages\LoginPage.tsx:44:console.error('登录错误详情:', error);
+client\src\pages\LoginPage.tsx:49:// 智能错误提示
+client\src\pages\LoginPage.tsx:59:// 在界面上显示原始错误，方便调试
+client\src\pages\LoginPage.tsx:76:{/* 登录表单 */}
+client\src\pages\LoginPage.tsx:108:{/* 调试信息显示区 */}
+client\src\pages\LoginPage.tsx:126:{/* 注册链接 */}
+client\src\pages\LoginPage.tsx:145:{/* 演示账号 */}
+client\src\pages\MemoDashboard.tsx:21:const [activeCategory, setActiveCategory] = useState("总备忘录");
+client\src\pages\MemoDashboard.tsx:46:{ category: "总备忘录", count: total, icon: <DocumentIcon className="w-6 h-6" /> },
+client\src\pages\MemoDashboard.tsx:47:{ category: "待处理", count: pending, icon: <ClockIcon className="w-6 h-6" /> },
+client\src\pages\MemoDashboard.tsx:48:{ category: "已完成", count: completed, icon: <ChartBarIcon className="w-6 h-6" /> },
+client\src\pages\MemoDashboard.tsx:49:{ category: "即将到来", count: upcoming, icon: <CalendarDaysIcon className="w-6 h-6" /> },
+client\src\pages\MemoDashboard.tsx:57:if (activeCategory === '待处理' && memo.status === 'completed') return false;
+client\src\pages\MemoDashboard.tsx:58:if (activeCategory === '已完成' && memo.status !== 'completed') return false;
+client\src\pages\MemoDashboard.tsx:59:if (activeCategory === '即将到来' && !isUpcoming(memo)) return false;
+client\src\pages\MemoPage.tsx:73:console.error('创建备忘录失败:', error);
+client\src\pages\NextGenVideoRoomPage.tsx:17:Mok 视觉模块未就绪：请先安装依赖 @react-three/fiber @react-three/drei three @mediapipe/tasks-vision
+client\src\pages\NextGenVideoRoomPage.tsx:78:toast.error('进入会议失败：缺少房间凭证');
+client\src\pages\NextGenVideoRoomPage.tsx:94:toast.success('已进入会议');
+client\src\pages\NextGenVideoRoomPage.tsx:110:toast.error(e?.message || '无法进入会议');
+client\src\pages\NextGenVideoRoomPage.tsx:141:toast.success('开始共享屏幕');
+client\src\pages\NextGenVideoRoomPage.tsx:143:toast.error(e?.message || '无法共享屏幕');
+client\src\pages\NextGenVideoRoomPage.tsx:151:toast.success('已停止共享屏幕');
+client\src\pages\NextGenVideoRoomPage.tsx:156:if (confirm('确定要离开会议吗？')) nav('/video');
+client\src\pages\NextGenVideoRoomPage.tsx:175:<div className="text-xl font-semibold">会议房间</div>
+client\src\pages\NextGenVideoRoomPage.tsx:178:参会者（除我）：{participants.join(', ') || '—'}
+client\src\pages\NextGenVideoRoomPage.tsx:183:<button className="btn" onClick={() => setShowMok((v) => !v)}>{showMok ? '关闭 Mok' : '开启 Mok'}</button>
+client\src\pages\NextGenVideoRoomPage.tsx:184:<button className="btn" onClick={toggleAudio}>{audioMuted ? '开启麦克风' : '静音'}</button>
+client\src\pages\NextGenVideoRoomPage.tsx:185:<button className="btn" onClick={toggleVideo}>{videoOff ? '打开摄像头' : '关闭摄像头'}</button>
+client\src\pages\NextGenVideoRoomPage.tsx:187:<button className="btn" onClick={startShare}>共享屏幕</button>
+client\src\pages\NextGenVideoRoomPage.tsx:189:<button className="btn" onClick={stopShare}>停止共享</button>
+client\src\pages\NextGenVideoRoomPage.tsx:191:{isHost && <button className="btn" onClick={muteAll}>全员静音</button>}
+client\src\pages\NextGenVideoRoomPage.tsx:192:<button className="btn" onClick={leave}>离开</button>
+client\src\pages\NextGenVideoRoomPage.tsx:198:已进入等候室，正在等待主持人批准入会…
+client\src\pages\NextGenVideoRoomPage.tsx:205:<Suspense fallback={<div className="w-full h-full flex items-center justify-center text-white">加载 Mok 特效中…</div>}>
+client\src\pages\NextGenVideoRoomPage.tsx:210:Mok 面板已关闭
+client\src\pages\NextGenVideoRoomPage.tsx:216:<div className="text-sm font-semibold mb-2">视频画面</div>
+client\src\pages\NextGenVideoRoomPage.tsx:232:<div className="text-sm font-semibold mb-2">等候室</div>
+client\src\pages\NextGenVideoRoomPage.tsx:245:提示：如需传统会议界面，请访问 /video-basic/{id}
+client\src\pages\Personalize.tsx:19:// 寮曞叆鍔熻兘缁勪欢
+client\src\pages\Personalize.tsx:21:// 搴旂敤鍏ュ彛宸茶縼绉诲埌 MagicDock锛岃繖閲屼繚鐣欑┖鍒楄〃浠ュ仠鐢ㄦ棫鍏ュ彛
+client\src\pages\Personalize.tsx:47:// 鏍稿績鐘舵侊細浣嶇疆绠＄悊
+client\src\pages\Personalize.tsx:69:setActiveApps([]); // 鍏ュ彛宸茬Щ鍒?MagicDock
+client\src\pages\Personalize.tsx:73:// 鎭㈠嶇獥鍙ｄ綅缃
+client\src\pages\Personalize.tsx:81:// 鎭㈠ Dock 浣嶇疆
+client\src\pages\Personalize.tsx:83:if (data.layout?.dock && data.layout.dock.x !== 500) { // 绠鍗曡繃婊ら粯璁ゅ?
+client\src\pages\Personalize.tsx:93:console.error("鍔犺浇閰嶇疆澶辫触", e);
+client\src\pages\Personalize.tsx:109:// 淇濆瓨绐楀彛浣嶇疆
+client\src\pages\Personalize.tsx:113:// 鏇存柊鏈鍦扮姸鎬侊紝闃叉UI璺冲彉锛堝彲閫夛級
+client\src\pages\Personalize.tsx:119:// 鍙戦佺粰鍚庣
+client\src\pages\Personalize.tsx:125:windows: { [id]: pos } // controller 浼氬仛娣卞害鍚堝苟
+client\src\pages\Personalize.tsx:135:// 淇濆瓨 Dock 浣嶇疆
+client\src\pages\Personalize.tsx:139:// 淇姝ｏ細淇濆?Dock 涓蹇冪偣鎴栧乏涓婅掞紝杩欓噷鐩存帴淇濆瓨 transform 缁撴灉
+client\src\pages\Personalize.tsx:213:姝ｅ湪杩涘叆浣犵殑涓撳睘绌洪棿...
+client\src\pages\Personalize.tsx:237:{/* 鐐瑰嚮鐗规晥 & 鑳屾櫙鍒囨崲 */}
+client\src\pages\Personalize.tsx:243:{/* 鍒涙剰鐢诲竷 (鐓х墖澧? - 鑷鍔ㄨ诲彇鍚庣鏁版嵁 */}
+client\src\pages\Personalize.tsx:249:{/* 涓鎬у寲椤垫覆鏌撳敮涓瀹犵墿瀹炰緥 */}
+client\src\pages\Personalize.tsx:261:{/* 鎮娴绐楀彛灞?- 鍏ㄩ儴浣跨敤 DraggableWindow 鍖呰 */}
+client\src\pages\Personalize.tsx:265:{/* 鏃х獥鍙ｅ叆鍙ｅ凡鍏抽棴锛岀獥鍙ｆ覆鏌撲氦缁?MagicDock */}
+client\src\pages\Personalize.tsx:271:{/* 椤堕儴鏍囬 */}
+client\src\pages\Register.tsx:22:toast.error('两次输入的密码不一致');
+client\src\pages\Register.tsx:28:toast.success('注册成功！请登录');
+client\src\pages\Register.tsx:31:toast.error('注册失败，请稍后重试');
+client\src\pages\Register.tsx:46:<h1 className="text-2xl font-extrabold text-gray-800 mb-1">创建你的账户</h1>
+client\src\pages\Register.tsx:50:<label className="text-xs font-bold text-gray-600 ml-1 uppercase">用户名</label>
+client\src\pages\Register.tsx:53:<input type="text" required className="block w-full pl-9 pr-3 py-2.5 border-transparent bg-white/60 rounded-lg focus:ring-2 focus:ring-pink-400 focus:bg-white transition-all text-sm" placeholder="怎么称呼你？" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} />
+client\src\pages\Register.tsx:57:<label className="text-xs font-bold text-gray-600 ml-1 uppercase">邮箱</label>
+client\src\pages\Register.tsx:64:<label className="text-xs font-bold text-gray-600 ml-1 uppercase">密码</label>
+client\src\pages\Register.tsx:71:<label className="text-xs font-bold text-gray-600 ml-1 uppercase">确认密码</label>
+client\src\pages\Register.tsx:78:{isLoading ? '注册中...' : '注册账户'}
+client\src\pages\Register.tsx:83:已有账号？ <Link to="/login" className="font-bold text-pink-600 hover:text-pink-500 hover:underline transition-all">直接登录</Link>
+client\src\pages\RegisterPage.tsx:31:// 至少6位，包含字母和数字
+client\src\pages\RegisterPage.tsx:43:// 修复: 增加校验逻辑
+client\src\pages\RegisterPage.tsx:63:// 修复: 细化错误提示
+client\src\pages\UserProfilePage.tsx:226:console.error('获取评价失败:', error);
+client\src\pages\UserProfilePage.tsx:243:console.error('获取动态失败:', error);
+client\src\pages\UserProfilePage.tsx:285:{/* 个人信息卡片 */}
+client\src\pages\UserProfilePage.tsx:297:{/* 头像 */}
+client\src\pages\UserProfilePage.tsx:306:{/* 基本信息 */}
+client\src\pages\UserProfilePage.tsx:321:{/* 统计信息 */}
+client\src\pages\UserProfilePage.tsx:348:{/* 操作按钮 */}
+client\src\pages\UserProfilePage.tsx:471:{/* 技能展示区 */}
+client\src\pages\UserProfilePage.tsx:487:{/* 收费标准 */}
+client\src\pages\UserProfilePage.tsx:511:{/* 内容标签页 */}
+client\src\pages\UserProfilePage.tsx:648:{/* 评价列表 */}
+client\src\pages\UserProfilePage.tsx:713:{/* 预约弹窗 */}
+client\src\pages\UserProfilePage.tsx:724:// 预约弹窗组件
+client\src\pages\UserProfilePage.tsx:780:{/* 时长选择 */}
+client\src\pages\UserProfilePage.tsx:802:{/* 日期选择 */}
+client\src\pages\UserProfilePage.tsx:814:{/* 学习需求 */}
+client\src\pages\UserProfilePage.tsx:830:{/* 总价 */}
+client\src\pages\VideoLobbyPage.tsx:77:{/* 创建会议 */}
+client\src\pages\VideoLobbyPage.tsx:99:{/* 加入会议 */}
+client\src\pages\VideoRoomPage.tsx:22:// ================= 1. 核心状态 =================
+client\src\pages\VideoRoomPage.tsx:35:// ================= 2. UI/功能状态 =================
+client\src\pages\VideoRoomPage.tsx:58:// ================= 3. 生命周期 =================
+client\src\pages\VideoRoomPage.tsx:80:// ================= 4. 媒体控制 =================
+client\src\pages\VideoRoomPage.tsx:134:// ================= 5. 功能逻辑 =================
+client\src\pages\VideoRoomPage.tsx:135:// 字幕
+client\src\pages\VideoRoomPage.tsx:161:// 录制
+client\src\pages\VideoRoomPage.tsx:187:// 聊天与互动
+client\src\pages\VideoRoomPage.tsx:223:// 外层容器：使用 h-screen 和 overflow-hidden 确保不出现滚动条
+client\src\pages\VideoRoomPage.tsx:233:{/* 表情层 */}
+client\src\pages\VideoRoomPage.tsx:242:{/* ★★★★★ 核心修复：新增会议信息弹窗 ★★★★★ */}
+client\src\pages\VideoRoomPage.tsx:245:{/* --- 主内容区域 (左侧) --- */}
+client\src\pages\VideoRoomPage.tsx:246:{/* 使用 flex flex-col 确保垂直布局，flex-1 占据剩余空间 */}
+client\src\pages\VideoRoomPage.tsx:249:{/* 顶部悬浮信息 */}
+client\src\pages\VideoRoomPage.tsx:256:{/* 顶部工具 */}
+client\src\pages\VideoRoomPage.tsx:263:{/* --- 视频区域 (中间) --- */}
+client\src\pages\VideoRoomPage.tsx:264:{/* 关键：flex-1 和 min-h-0 允许它缩放，overflow-hidden 防止撑大父容器 */}
+client\src\pages\VideoRoomPage.tsx:302:{/* --- 底部控制栏 (固定) --- */}
+client\src\pages\VideoRoomPage.tsx:303:{/* 关键：h-20 固定高度，flex-shrink-0 禁止被挤压，z-50 确保在最上层 */}
+client\src\pages\VideoRoomPage.tsx:334:{/* --- 右侧聊天栏 (固定定位) --- */}
+client\src\pages\VideoRoomPage.tsx:385:// ★★★★★ 核心修复：新增会议信息弹窗组件 ★★★★★
+client\src\components\Cosmetics\AvatarFrame.tsx:5:// 定义宠物列表
+client\src\components\Cosmetics\AvatarFrame.tsx:7:{ id: 1, name: "咪咪", emoji: "🐱", desc: "一直在陪着你" },
+client\src\components\Cosmetics\AvatarFrame.tsx:8:{ id: 2, name: "旺财", emoji: "🐶", desc: "忠诚的守护者" },
+client\src\components\Cosmetics\AvatarFrame.tsx:9:{ id: 3, name: "灵狐", emoji: "🦊", desc: "带来好运" },
+client\src\components\Cosmetics\AvatarFrame.tsx:10:{ id: 4, name: "玉兔", emoji: "🐰", desc: "温柔可爱" }
+client\src\components\Cosmetics\AvatarFrame.tsx:25:}, 300); // 等待淡出动画
+client\src\components\Cosmetics\AvatarFrame.tsx:38:🐾 我的伙伴
+client\src\components\Cosmetics\AvatarFrame.tsx:42:{/* 左切换按钮 */}
+client\src\components\Cosmetics\AvatarFrame.tsx:48:{/* 宠物展示区 - 增加呼吸动画 */}
+client\src\components\Cosmetics\AvatarFrame.tsx:57:{/* 这里显示 Emoji 或图片 */}
+client\src\components\Cosmetics\AvatarFrame.tsx:70:{/* 右切换按钮 */}
+client\src\components\Cosmetics\Badge.tsx:13:admin: { color: 'from-red-500 to-red-700', icon: '🛡️', label: '管理员', ring: 'ring-red-200' },
+client\src\components\Cosmetics\Badge.tsx:14:verified: { color: 'from-blue-400 to-blue-600', icon: '✅', label: '认证用户', ring: 'ring-blue-200' },
+client\src\components\Cosmetics\Badge.tsx:15:artist: { color: 'from-purple-400 to-pink-500', icon: '🎨', label: '创作者', ring: 'ring-purple-200' },
+client\src\components\Cosmetics\Badge.tsx:17:newbie: { color: 'from-green-400 to-emerald-600', icon: '🌱', label: '萌新', ring: 'ring-green-200' },
+client\src\components\Cosmetics\Badge.tsx:18:bug_hunter: { color: 'from-gray-700 to-black', icon: '🐞', label: '赏金猎人', ring: 'ring-gray-400' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:6:{ id: 'default', nameKey: '无边框', color: '#9ca3af' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:7:{ id: 'thorn', nameKey: '荆棘帝王', color: '#ef4444' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:8:{ id: 'ocean', nameKey: '海洋海王', color: '#0ea5e9' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:9:{ id: 'emperor', nameKey: '至尊皇帝', color: '#fbbf24' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:13:{ id: 'dog', nameKey: '柴犬', icon: '🐶' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:14:{ id: 'cat', nameKey: '布偶', icon: '🐱' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:15:{ id: 'fox', nameKey: '阿狸', icon: '🦊' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:16:{ id: 'bunny', nameKey: '玉兔', icon: '🐰' },
+client\src\components\Cosmetics\PersonalizationPanel.tsx:38:{/* 边框选择 */}
+client\src\components\Cosmetics\PersonalizationPanel.tsx:55:{/* 宠物选择 */}
+client\src\components\Cosmetics\PetOrbit.tsx:36:{/* 轨道动画层 */}
+client\src\components\Cosmetics\PetOrbit.tsx:46:{/* 宠物交互盒子 (点击这里才有效) */}
+client\src\components\Cosmetics\PetOrbit.tsx:56:// 注意：这里我们用了一个反向旋转来保持宠物头朝上，简化逻辑
+client\src\components\Cosmetics\PetOrbit.tsx:58:transformOrigin: '50% 120px' // 围绕中心点旋转
+client\src\components\Cosmetics\PetOrbit.tsx:70:title={isSleeping ? "Zzz... (点击唤醒)" : "点击休息"}
+client\src\components\Cosmetics\SmartAvatar.tsx:33:// 边框样式定义
+client\src\components\Cosmetics\SmartAvatar.tsx:89:{/* 边框光泽特效 */}
+client\src\components\Cosmetics\SmartAvatar.tsx:99:{/* 编辑按钮 */}
+client\src\components\Cosmetics\SmartAvatar.tsx:115:title="更换头像"
+client\src\components\dashboard\PhotoWidget.tsx:9:// --- 新增：拖拽逻辑 ---
+client\src\components\dashboard\PhotoWidget.tsx:11:const [pos, setPos] = useState({ x: 100, y: 100 }); // 默认位置
+client\src\components\dashboard\PhotoWidget.tsx:51:// 阻止事件冒泡，防止触发底层的点击
+client\src\components\dashboard\PhotoWidget.tsx:63:// --- 结束 ---
+client\src\components\dashboard\PhotoWidget.tsx:75:position: 'fixed', // 或者是 absolute，取决于父容器
+client\src\components\dashboard\PhotoWidget.tsx:93:{/* 模拟相框样式 */}
+client\src\components\dashboard\PhotoWidget.tsx:101:{/* 这里放原本的 <img /> */}
+client\src\components\dashboard\PhotoWidget.tsx:107:美好时刻
+client\src\components\personalization\AchievementPanel.tsx:45:// 玩法：每 5 条升级一次
+client\src\components\personalization\AchievementPanel.tsx:77:// Local “玩法”状态：不影响外部逻辑，不要求后端字段
+client\src\components\personalization\AchievementPanel.tsx:91:// 当外部 items 增加时：自动 toast + 轻量庆祝 + 高亮新卡片
+client\src\components\personalization\AchievementPanel.tsx:575:// 轻量粒子：不依赖任何库
+client\src\components\personalization\ClickEffectLayer.tsx:7:// 轻量封装：默认开启点击特效，避免缺失导致 404
+client\src\components\personalization\CreativeCanvas.tsx:13:// 占位版 CreativeCanvas：避免 404，保留接口，未来可扩展图片墙/贴纸等能力
+client\src\components\personalization\DoodleNote.tsx:328:// and will keep dragging ("松手后还在硬拖").
+client\src\components\personalization\DraggableWidget.tsx:47:dragMomentum={false} // 关闭惯性，防止飞出屏幕
+client\src\components\personalization\DraggableWindow.tsx:35:dragMomentum={false} // 关闭惯性，防止滑得太远
+client\src\components\personalization\DraggableWindow.tsx:37:// 使用 initial 直接设置初始位置，而不是 style
+client\src\components\personalization\DraggableWindow.tsx:45:// 拖拽结束时，获取最终的 transform 值并保存
+client\src\components\personalization\DraggableWindow.tsx:49:// Framer Motion 的 drag 是基于 transform 的偏移量
+client\src\components\personalization\DraggableWindow.tsx:51:// 如果我们用 initial={{x, y}}，那么 info.point 是屏幕绝对坐标
+client\src\components\personalization\DraggableWindow.tsx:53:// 我们需要保存的是相对于父容器的坐标，但在全屏 fixed 布局下，point 就是准确的
+client\src\components\personalization\DraggableWindow.tsx:57:// 注意：这里我们保存的是绝对坐标
+client\src\components\personalization\DraggableWindow.tsx:59:// 为了防止下次加载时位置跳变，我们直接保存这个坐标
+client\src\components\personalization\DraggableWindow.tsx:67:style={{ zIndex, position: 'fixed', left: 0, top: 0 }} // 强制 fixed left-0 top-0，完全靠 transform 定位
+client\src\components\personalization\DraggableWindow.tsx:71:{/* 添加一个透明的拖拽手柄或者整个区域可拖拽 */}
+client\src\components\personalization\FocusTimer.tsx:20:// 结束逻辑
+client\src\components\personalization\FocusTimer.tsx:49:{/* 萌物互动区 */}
+client\src\components\personalization\FocusTimer.tsx:64:{/* 状态气泡 */}
+client\src\components\personalization\FocusTimer.tsx:75:{/* 计时显示 */}
+client\src\components\personalization\FocusTimer.tsx:80:{/* 控制区 */}
+client\src\components\personalization\FocusTimer.tsx:91:{/* 时间选择滑块 (仅Idle时可用) */}
+client\src\components\personalization\FocusTimer.tsx:120:{/* 切换宠物 */}
+client\src\components\personalization\FortuneWidget.tsx:10:// --- 类型定义 ---
+client\src\components\personalization\FortuneWidget.tsx:34:// --- 签文数据 ---
+client\src\components\personalization\FortuneWidget.tsx:74:// --- SVG 组件：梦幻水晶球 ---
+client\src\components\personalization\FortuneWidget.tsx:114:{/* 内部星云流动效果 */}
+client\src\components\personalization\FortuneWidget.tsx:136:{/* 高光反射 */}
+client\src\components\personalization\FortuneWidget.tsx:142:{/* 内部魔法漩涡 */}
+client\src\components\personalization\FortuneWidget.tsx:166:// --- SVG 组件：发光小精灵 ---
+client\src\components\personalization\FortuneWidget.tsx:214:{/* 翅膀 (左) */}
+client\src\components\personalization\FortuneWidget.tsx:234:{/* 翅膀 (右) */}
+client\src\components\personalization\FortuneWidget.tsx:256:{/* 身体光辉 */}
+client\src\components\personalization\FortuneWidget.tsx:260:{/* 魔法棒 */}
+client\src\components\personalization\FortuneWidget.tsx:274:// --- 魔法粒子系统 ---
+client\src\components\personalization\FortuneWidget.tsx:420:{/* 外部环境光 */}
+client\src\components\personalization\FortuneWidget.tsx:426:{/* 核心容器 */}
+client\src\components\personalization\FortuneWidget.tsx:430:{/* 背景纹理 */}
+client\src\components\personalization\FortuneWidget.tsx:438:{/* 标题 */}
+client\src\components\personalization\FortuneWidget.tsx:458:{/* --- 状态1：待机 / 摇签中 --- */}
+client\src\components\personalization\FortuneWidget.tsx:474:{/* 精灵 SVG */}
+client\src\components\personalization\FortuneWidget.tsx:480:{/* 精灵光晕 */}
+client\src\components\personalization\FortuneWidget.tsx:492:{/* 水晶球 SVG */}
+client\src\components\personalization\FortuneWidget.tsx:496:{/* 底部魔法阵光环 */}
+client\src\components\personalization\FortuneWidget.tsx:522:{/* 提示文字 */}
+client\src\components\personalization\FortuneWidget.tsx:544:{/* --- 状态2：结果展示 (命运卡牌) --- */}
+client\src\components\personalization\FortuneWidget.tsx:562:{/* 卡牌主体 */}
+client\src\components\personalization\FortuneWidget.tsx:572:{/* 卡牌内部 */}
+client\src\components\personalization\HabitTree.tsx:21:// 实际项目中应读取后端API
+client\src\components\personalization\HabitTree.tsx:29:// 检查今日是否已打卡 (模拟)
+client\src\components\personalization\HabitTree.tsx:71:// 补签逻辑
+client\src\components\personalization\HabitTree.tsx:85:{/* 标题 */}
+client\src\components\personalization\HabitTree.tsx:98:{/* 太阳 */}
+client\src\components\personalization\HabitTree.tsx:112:{/* 树主体 */}
+client\src\components\personalization\HabitTree.tsx:116:{/* 花盆 */}
+client\src\components\personalization\HabitTree.tsx:127:{/* 树干 */}
+client\src\components\personalization\HabitTree.tsx:137:{/* 树枝叶子生成 */}
+client\src\components\personalization\HabitTree.tsx:178:{/* 底部打卡栏 */}
+client\src\components\personalization\NoteWidget.tsx:33:{/* 顶部胶带 */}
+client\src\components\personalization\draggable\DraggableNote.tsx:37:// 自动保存防抖
+client\src\components\personalization\draggable\DraggableNote.tsx:73:dragListener={false} // 只有按住头部才能拖动
+client\src\components\personalization\draggable\DraggableNote.tsx:91:{/* 拟物化便签头部 (胶带效果) */}
+client\src\components\personalization\draggable\DraggableNote.tsx:119:{/* 便签主体 */}

@@ -1,3 +1,4 @@
+﻿
 import { useState, useEffect, useMemo } from 'react';
 import type { CSSProperties } from 'react';
 import SmartAvatar from '@/components/Cosmetics/SmartAvatar';
@@ -7,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { ArrowLeftIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { HeartIcon } from '@heroicons/react/24/solid';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 const API_URL = String(API_BASE).endsWith('/api')
@@ -158,9 +160,15 @@ interface Post {
   };
 }
 
+function formatDate(value: string, locale: string) {
+  return new Date(value).toLocaleString(locale);
+}
+
 export default function ProfilePage() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { t, lang } = useLanguage();
+  const locale = lang === 'en' ? 'en-US' : 'zh-CN';
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -201,7 +209,7 @@ export default function ProfilePage() {
       );
       setProfile(response.data);
     } catch (error) {
-      toast.error('获取用户信息失败');
+      toast.error(t('profile.load_failed'));
     } finally {
       setLoading(false);
     }
@@ -249,7 +257,7 @@ export default function ProfilePage() {
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">用户不存在</p>
+        <p className="text-gray-500">{t('profile.not_found')}</p>
       </div>
     );
   }
@@ -262,13 +270,15 @@ export default function ProfilePage() {
   const bookingRateText =
     profile.totalBookings > 0
       ? `${Math.round((profile.bookingRate || 0) * 100)}%`
-      : '暂无';
+      : t('profile.none');
   const positiveRateText =
     profile.reviewCount && profile.reviewCount > 0
       ? `${Math.round((profile.positiveRate || 0) * 100)}%`
-      : '暂无';
+      : t('profile.none');
   const currentFrameStyle = FRAME_STYLES[customFrame] || FRAME_STYLES.none;
-  const postTitle = isOwnProfile ? '你发布的动态' : `${profile.username} 的动态`;
+  const postTitle = isOwnProfile
+    ? t('profile.posts_title_self')
+    : t('profile.posts_title', { name: profile.username });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -281,7 +291,7 @@ export default function ProfilePage() {
             className="inline-flex items-center gap-2 btn-soft px-3 py-1.5 rounded-full text-sm mb-6"
           >
             <ArrowLeftIcon className="w-4 h-4" />
-            返回上一页
+            {t('profile.back')}
           </button>
           <div className="flex flex-col md:flex-row gap-6">
             {/* 头像 */}
@@ -299,7 +309,7 @@ export default function ProfilePage() {
                 <h1 className="text-3xl font-bold text-gray-900">{profile.username}</h1>
                 {profile.isConsultant && (
                   <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-medium">
-                    认证咨询师
+                    {t('profile.verified_consultant')}
                   </span>
                 )}
               </div>
@@ -312,26 +322,26 @@ export default function ProfilePage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{profile.totalBookings}</p>
-                  <p className="text-sm text-gray-500">预约次数</p>
+                  <p className="text-sm text-gray-500">{t('profile.booking_count')}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{bookingRateText}</p>
-                  <p className="text-sm text-gray-500">预约率</p>
+                  <p className="text-sm text-gray-500">{t('profile.booking_rate')}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{positiveRateText}</p>
-                  <p className="text-sm text-gray-500">好评率</p>
+                  <p className="text-sm text-gray-500">{t('profile.positive_rate')}</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 flex items-center gap-1">
-                    {profile.rating?.toFixed(1) || '暂无'}
+                    {profile.rating?.toFixed(1) || t('profile.none')}
                     {profile.rating && (
                       <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                       </svg>
                     )}
                   </p>
-                  <p className="text-sm text-gray-500">综合评分</p>
+                  <p className="text-sm text-gray-500">{t('profile.overall_rating')}</p>
                 </div>
               </div>
 
@@ -341,7 +351,7 @@ export default function ProfilePage() {
                   onClick={() => setShowBookingModal(true)}
                   className="px-6 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg hover:opacity-90 transition font-medium"
                 >
-                  立即预约
+                  {t('profile.book_now')}
                 </button>
               )}
             </div>
@@ -351,15 +361,15 @@ export default function ProfilePage() {
             <div className="mt-8 bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">个性化展示</h2>
-                  <p className="text-sm text-gray-500">仪表盘「个性化角」同步展示</p>
+                  <h2 className="text-lg font-semibold text-gray-900">{t('profile.personalization_title')}</h2>
+                  <p className="text-sm text-gray-500">{t('profile.personalization_subtitle')}</p>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-center gap-6">
                 <HaloAvatar src={haloAvatarSrc} frameStyle={currentFrameStyle} />
                 <div className="text-sm text-gray-600">
-                  <p>你的个性化头像与边框会在这里展示。</p>
-                  <p className="mt-1 text-xs text-gray-400">无需跳转到个性化页面即可查看。</p>
+                  <p>{t('profile.personalization_desc')}</p>
+                  <p className="mt-1 text-xs text-gray-400">{t('profile.personalization_hint')}</p>
                 </div>
               </div>
               <style>{`
@@ -461,7 +471,7 @@ export default function ProfilePage() {
           {/* 技能展示区 */}
           {profile.specialties && profile.specialties.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">擅长技能</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('profile.skills')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {profile.specialties.map((skill, idx) => (
                   <div key={idx} className="p-4 bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl border border-primary-100">
@@ -477,17 +487,17 @@ export default function ProfilePage() {
           {/* 收费标准 */}
           {profile.isConsultant && profile.pricingRules && profile.pricingRules.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">收费标准</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('profile.pricing')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {profile.pricingRules.map((rule, idx) => (
                   <div key={idx} className="p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-primary-300 transition">
                     <div className="flex items-baseline gap-2 mb-2">
                       <span className="text-3xl font-bold text-primary-600">¥{rule.price}</span>
-                      <span className="text-gray-500">/ {rule.duration}分钟</span>
+                      <span className="text-gray-500">/ {rule.duration}{t('profile.minutes')}</span>
                     </div>
                     {rule.discount && (
                       <p className="text-sm text-green-600">
-                        {rule.discount.type === 'first_time' && `首次预约立减¥${rule.discount.amount}`}
+                        {rule.discount.type === 'first_time' && t('profile.first_booking_discount', { amount: rule.discount.amount })}
                       </p>
                     )}
                   </div>
@@ -509,7 +519,7 @@ export default function ProfilePage() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            动态
+            {t('profile.tab.posts')}
           </button>
           <button
             onClick={() => setActiveTab('reviews')}
@@ -519,7 +529,7 @@ export default function ProfilePage() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            评价 ({reviews.length})
+            {t('profile.tab.reviews', { count: reviews.length })}
           </button>
         </div>
 
@@ -529,10 +539,10 @@ export default function ProfilePage() {
             {postsLoading ? (
               <div className="text-center py-12">
                 <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600" />
-                <p className="mt-3 text-gray-500">加载中...</p>
+                <p className="mt-3 text-gray-500">{t('profile.loading')}</p>
               </div>
             ) : posts.length === 0 ? (
-              <p className="text-center text-gray-500 py-12">暂无动态</p>
+              <p className="text-center text-gray-500 py-12">{t('profile.no_posts')}</p>
             ) : (
               posts.map((post) => {
                 const postAvatarRaw = isOwnProfile
@@ -555,12 +565,12 @@ export default function ProfilePage() {
                           <span className="font-medium text-gray-900">{post.user.username}</span>
                           {post.user.isVerified && (
                             <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600">
-                              已认证
+                              {t('profile.verified_badge')}
                             </span>
                           )}
                         </div>
                         <p className="text-sm text-gray-500">
-                          {new Date(post.createdAt).toLocaleString('zh-CN')}
+                          {formatDate(post.createdAt, locale)}
                         </p>
                       </div>
                     </div>
@@ -583,7 +593,7 @@ export default function ProfilePage() {
                           <img
                             key={`${post.id}-img-${idx}`}
                             src={resolveAssetUrl(img)}
-                            alt={`动态图片 ${idx + 1}`}
+                            alt={t('profile.post_image_alt', { count: idx + 1 })}
                             className="w-full h-40 object-cover rounded-xl"
                             onError={(event) => {
                               event.currentTarget.style.display = 'none';
@@ -625,7 +635,7 @@ export default function ProfilePage() {
                         to={`/post/${post.id}`}
                         className="ml-auto text-primary-600 hover:text-primary-700"
                       >
-                        查看详情
+                        {t('profile.view_detail')}
                       </Link>
                     </div>
                   </div>
@@ -639,7 +649,7 @@ export default function ProfilePage() {
         {activeTab === 'reviews' && (
           <div className="space-y-4">
             {reviews.length === 0 ? (
-              <p className="text-center text-gray-500 py-12">暂无评价</p>
+              <p className="text-center text-gray-500 py-12">{t('profile.no_reviews')}</p>
             ) : (
               reviews.map((review) => (
                 <div key={review.id} className="bg-white rounded-xl shadow-sm p-6">
@@ -667,7 +677,7 @@ export default function ProfilePage() {
                           </div>
                         </div>
                         <span className="text-sm text-gray-500">
-                          {new Date(review.createdAt).toLocaleDateString('zh-CN')}
+                          {new Date(review.createdAt).toLocaleDateString(locale)}
                         </span>
                       </div>
                       <p className="text-gray-700 mb-3">{review.content}</p>
@@ -678,7 +688,7 @@ export default function ProfilePage() {
                             <img
                               key={idx}
                               src={resolveAssetUrl(img)}
-                              alt={`评价图片 ${idx + 1}`}
+                              alt={t('profile.review_image_alt', { count: idx + 1 })}
                               className="w-20 h-20 object-cover rounded-lg"
                             />
                           ))}
@@ -687,7 +697,7 @@ export default function ProfilePage() {
                       
                       {review.reply && (
                         <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-500 mb-1">咨询师回复：</p>
+                          <p className="text-sm text-gray-500 mb-1">{t('profile.consultant_reply')}</p>
                           <p className="text-sm text-gray-700">{review.reply}</p>
                         </div>
                       )}
@@ -718,6 +728,7 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
   const [purpose, setPurpose] = useState('');
   const [loading, setLoading] = useState(false);
   const { token } = useAuthStore();
+  const { t } = useLanguage();
 
   const selectedPricing = consultant.pricingRules?.find(r => r.duration === selectedDuration);
 
@@ -725,7 +736,7 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
     e.preventDefault();
     
     if (!selectedDate || !purpose.trim()) {
-      toast.error('请填写完整信息');
+      toast.error(t('profile.booking.fill_all'));
       return;
     }
 
@@ -743,10 +754,10 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success('预约成功！');
+      toast.success(t('profile.booking.success'));
       onClose();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || '预约失败');
+      toast.error(error.response?.data?.error || t('profile.booking.failed'));
     } finally {
       setLoading(false);
     }
@@ -757,7 +768,7 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">预约 {consultant.username}</h2>
+            <h2 className="text-2xl font-bold">{t('profile.booking.title', { name: consultant.username })}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -768,7 +779,7 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* 时长选择 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">选择时长</label>
+              <label className="block text-sm font-medium text-gray-700 mb-3">{t('profile.booking.select_duration')}</label>
               <div className="grid grid-cols-3 gap-3">
                 {consultant.pricingRules?.map((rule) => (
                   <button
@@ -781,7 +792,7 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
-                    <p className="font-semibold text-gray-900">{rule.duration}分钟</p>
+                    <p className="font-semibold text-gray-900">{rule.duration}{t('profile.minutes')}</p>
                     <p className="text-primary-600 font-bold">¥{rule.price}</p>
                   </button>
                 ))}
@@ -790,7 +801,7 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
 
             {/* 日期选择 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">选择日期</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t('profile.booking.select_date')}</label>
               <input
                 type="datetime-local"
                 value={selectedDate}
@@ -803,14 +814,14 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
             {/* 学习需求 */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                学习需求 ({purpose.length}/300)
+                {t('profile.booking.needs')} ({purpose.length}/300)
               </label>
               <textarea
                 value={purpose}
                 onChange={(e) => setPurpose(e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 resize-none"
                 rows={4}
-                placeholder="描述你想学习的内容..."
+                placeholder={t('profile.booking.needs_placeholder')}
                 maxLength={300}
                 required
               />
@@ -819,7 +830,7 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
             {/* 总价 */}
             <div className="p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-gray-700">总计：</span>
+                <span className="text-gray-700">{t('profile.booking.total')}</span>
                 <span className="text-2xl font-bold text-primary-600">
                   ¥{selectedPricing?.price || 0}
                 </span>
@@ -832,14 +843,14 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
                 onClick={onClose}
                 className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
               >
-                取消
+                {t('profile.booking.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="flex-1 px-4 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-lg hover:opacity-90 disabled:opacity-50 transition"
               >
-                {loading ? '提交中...' : '确认预约'}
+                {loading ? t('profile.booking.submitting') : t('profile.booking.submit')}
               </button>
             </div>
           </form>
@@ -848,5 +859,3 @@ function BookingModal({ consultant, onClose }: { consultant: UserProfile; onClos
     </div>
   );
 }
-
-

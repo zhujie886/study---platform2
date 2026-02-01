@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 
 
 type MoodType = "happy" | "normal" | "sad";
+type Translate = (key: string, vars?: Record<string, string | number>) => string;
 
 
 
@@ -211,16 +213,20 @@ function ensureTodayEntry(entries: MoodEntryV2[]): MoodEntryV2[] {
 }
 
 
-function weekdayCN(dateKey: string): string {
-
+function weekdayLabel(dateKey: string, t: Translate, lang: "zh" | "en"): string {
   const d = new Date(`${dateKey}T00:00:00`);
-
-  const map = ["日", "一", "二", "三", "四", "五", "六"];
-
-  const w = map[d.getDay()] ?? "";
-
-  return `周${w}`;
-
+  const map = [
+    "mood.weekday.sun",
+    "mood.weekday.mon",
+    "mood.weekday.tue",
+    "mood.weekday.wed",
+    "mood.weekday.thu",
+    "mood.weekday.fri",
+    "mood.weekday.sat",
+  ];
+  const key = map[d.getDay()];
+  if (!key) return "";
+  return lang === "zh" ? `${t("mood.weekday.prefix")}${t(key)}` : t(key);
 }
 
 
@@ -237,37 +243,37 @@ function shortMD(dateKey: string): string {
 
 
 
-function moodLabel(m: MoodType): string {
+function moodLabel(m: MoodType, t: Translate): string {
 
-  if (m === "happy") return "开心";
+  if (m === "happy") return t("mood.label.happy");
 
-  if (m === "normal") return "一般";
+  if (m === "normal") return t("mood.label.normal");
 
-  return "低落";
-
-}
-
-
-
-function moodTagline(m: MoodType): string {
-
-  if (m === "happy") return "晴空气泡 · 轻快上升";
-
-  if (m === "normal") return "雾白苏打 · 平稳呼吸";
-
-  return "雨夜靛蓝 · 慢慢沉淀";
+  return t("mood.label.low");
 
 }
 
 
 
-function moodHint(m: MoodType): string {
+function moodTagline(m: MoodType, t: Translate): string {
 
-  if (m === "happy") return "把好事记下来，快乐会更长久。";
+  if (m === "happy") return t("mood.tagline.happy");
 
-  if (m === "normal") return "稳定也是一种能力，给自己一点肯定。";
+  if (m === "normal") return t("mood.tagline.normal");
 
-  return "今天不必强撑，允许自己慢一点。";
+  return t("mood.tagline.low");
+
+}
+
+
+
+function moodHint(m: MoodType, t: Translate): string {
+
+  if (m === "happy") return t("mood.hint.happy");
+
+  if (m === "normal") return t("mood.hint.normal");
+
+  return t("mood.hint.low");
 
 }
 
@@ -333,17 +339,17 @@ function getVisual(m: MoodType): MoodVisual {
 
 
 
-function intensityLabel(v: number): string {
+function intensityLabel(v: number, t: Translate): string {
 
-  if (v <= 1) return "很轻";
+  if (v <= 1) return t("mood.intensity.very_light");
 
-  if (v === 2) return "偏轻";
+  if (v === 2) return t("mood.intensity.light");
 
-  if (v === 3) return "适中";
+  if (v === 3) return t("mood.intensity.medium");
 
-  if (v === 4) return "偏强";
+  if (v === 4) return t("mood.intensity.strong");
 
-  return "很强";
+  return t("mood.intensity.very_strong");
 
 }
 
@@ -408,6 +414,7 @@ const Icon = ({ path, className }: { path: string; className?: string }) => (
 
 
 export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
+  const { t, lang } = useLanguage();
 
   const [history, setHistory] = useState<MoodEntryV2[]>([]);
 
@@ -582,7 +589,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
     upsertEntry(entry);
 
-    showToast(editingDay === today ? "已记录今日心情" : "已保存这一天的心情");
+    showToast(editingDay === today ? t("mood.toast.saved_today") : t("mood.toast.saved_day"));
 
   };
 
@@ -604,7 +611,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
       setShakeNonce((n) => n + 1);
 
-      showToast(`已切换到 ${shortMD(day)}`);
+      showToast(t("mood.toast.switched_date", { date: shortMD(day) }));
 
       return;
 
@@ -636,15 +643,27 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
 
 
+  const quickNotes = useMemo(
+    () => [
+      "mood.quick_note.progress",
+      "mood.quick_note.tired",
+      "mood.quick_note.light",
+      "mood.quick_note.interrupted",
+      "mood.quick_note.tasty",
+      "mood.quick_note.quiet",
+    ].map((key) => t(key)),
+    [t]
+  );
+
   const statsLabel = useMemo(() => {
 
-    const best = moodLabel(insights.best);
+    const best = moodLabel(insights.best, t);
 
-    const t = insights.t === "up" ? "↗" : insights.t === "down" ? "↘" : "→";
+    const trendArrow = insights.t === "up" ? "↗" : insights.t === "down" ? "↘" : "→";
 
-    return `近 7 天：偏 ${best} ${t}`;
+    return t("mood.trend.summary", { best, arrow: trendArrow });
 
-  }, [insights]);
+  }, [insights, t]);
 
 
 
@@ -732,7 +751,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
           className="w-9 h-9 flex items-center justify-center rounded-full border border-white/60 bg-white/70 text-slate-700 hover:bg-white/90 transition"
 
-          title={expanded ? "收起" : "展开"}
+          title={expanded ? t("mood.action.collapse") : t("mood.action.expand")}
 
           type="button"
 
@@ -762,13 +781,13 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
           className="w-9 h-9 flex items-center justify-center rounded-full border border-white/60 bg-white/70 text-slate-600 hover:bg-white/90 transition"
 
-          title="关闭"
+          title={t("mood.action.close")}
 
           type="button"
 
         >
 
-          ?
+          \u00D7
 
         </button>
 
@@ -788,17 +807,17 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
             <div className="min-w-0">
 
-              <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500 uppercase">Mood Potion</div>
+              <div className="text-[11px] font-extrabold tracking-[0.22em] text-slate-500 uppercase">{t("mood.title.elixir")}</div>
 
               <div className="mt-2 text-[18px] font-black text-slate-900 leading-tight">
 
-                心情瓶
+                {t("mood.title.bottle")}
 
-                <span className="ml-2 text-[12px] font-semibold text-slate-500">· {moodTagline(mood)}</span>
+                <span className="ml-2 text-[12px] font-semibold text-slate-500">· {moodTagline(mood, t)}</span>
 
               </div>
 
-              <div className="mt-1 text-[12px] text-slate-600">{moodHint(mood)}</div>
+              <div className="mt-1 text-[12px] text-slate-600">{moodHint(mood, t)}</div>
 
             </div>
 
@@ -806,7 +825,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
             <div className="shrink-0 text-right hidden sm:block">
 
-              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">Insights</div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">{t("mood.title.trend")}</div>
 
               <div className="mt-1 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-3 py-1 text-[12px] font-bold text-slate-700">
 
@@ -854,15 +873,15 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   <div className="text-[12px] font-extrabold text-slate-700">
 
-                    {shortMD(editingDay)} · {weekdayCN(editingDay)}
+                    {shortMD(editingDay)} · {weekdayLabel(editingDay, t, lang)}
 
-                    {!isEditingToday && <span className="ml-2 text-[11px] font-semibold text-slate-500">（历史回看）</span>}
+                    {!isEditingToday && <span className="ml-2 text-[11px] font-semibold text-slate-500">{t("mood.note.history_view")}</span>}
 
                   </div>
 
                   <div className="mt-1 text-[11px] text-slate-500">
 
-                    强度：{intensityLabel(intensity)} · {moodLabel(mood)}
+                    {t("mood.label.intensity")}：{intensityLabel(intensity, t)} · {moodLabel(mood, t)}
 
                   </div>
 
@@ -880,17 +899,17 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                       setShakeNonce((n) => n + 1);
 
-                      showToast("摇一摇：气泡刷新");
+                      showToast(t("mood.toast.shake_refresh"));
 
                     }}
 
                     className="rounded-2xl px-3 py-2 text-sm font-semibold border border-white/60 bg-white/70 hover:bg-white/90 transition"
 
-                    title="摇一摇"
+                    title={t("mood.action.shake")}
 
                   >
 
-                    摇一摇
+                    {t("mood.action.shake")}
 
                   </button>
 
@@ -902,11 +921,11 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                     className="rounded-2xl px-3 py-2 text-sm font-extrabold border border-white/60 bg-white/80 hover:bg-white transition"
 
-                    title="保存"
+                    title={t("mood.action.save")}
 
                   >
 
-                    保存
+                    {t("mood.action.save")}
 
                   </button>
 
@@ -1139,11 +1158,11 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
               <div className="flex items-center justify-between">
 
-                <div className="text-[12px] font-extrabold uppercase tracking-[0.22em] text-slate-500">Current Mood</div>
+                <div className="text-[12px] font-extrabold uppercase tracking-[0.22em] text-slate-500">{t("mood.section.choose")}</div>
 
                 <div className="text-[11px] font-semibold text-slate-500">
 
-                  {isEditingToday ? (hasToday ? "今日已记录，可覆盖" : "今日未记录") : "历史回看可覆盖保存"}
+                  {isEditingToday ? (hasToday ? t("mood.note.today_recorded") : t("mood.note.today_not_recorded")) : t("mood.note.history_overwrite")}
 
                 </div>
 
@@ -1167,7 +1186,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   ].join(" ")}
 
-                  title="开心"
+                  title={t("mood.label.happy")}
 
                 >
 
@@ -1188,7 +1207,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   ].join(" ")}
 
-                  title="一般"
+                  title={t("mood.label.normal")}
 
                 >
 
@@ -1209,7 +1228,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   ].join(" ")}
 
-                  title="低落"
+                  title={t("mood.label.low")}
 
                 >
 
@@ -1224,11 +1243,11 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                 <div className="flex items-center justify-between">
 
-                  <div className="text-[12px] font-extrabold text-slate-800">强度</div>
+                  <div className="text-[12px] font-extrabold text-slate-800">{t("mood.label.intensity")}</div>
 
                   <div className="text-[12px] font-bold text-slate-600 tabular-nums">
 
-                    {intensity} / 5 · {intensityLabel(intensity)}
+                    {intensity} / 5 · {intensityLabel(intensity, t)}
 
                   </div>
 
@@ -1258,11 +1277,11 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   <div className="mt-2 flex justify-between text-[10px] font-semibold text-slate-500">
 
-                    <span>轻</span>
+                    <span>{t("mood.intensity.short_light")}</span>
 
-                    <span>适中</span>
+                    <span>{t("mood.intensity.short_medium")}</span>
 
-                    <span>强</span>
+                    <span>{t("mood.intensity.short_strong")}</span>
 
                   </div>
 
@@ -1276,7 +1295,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                 <div className="flex items-center justify-between">
 
-                  <div className="text-[12px] font-extrabold text-slate-800">一句话记录</div>
+                  <div className="text-[12px] font-extrabold text-slate-800">{t("mood.section.one_line")}</div>
 
                   <div className="text-[11px] font-semibold text-slate-500">{note.length}/200</div>
 
@@ -1288,7 +1307,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   onChange={(e) => setNote(e.target.value.slice(0, 200))}
 
-                  placeholder="例如：今天把最难的部分搞定了；或：有点累，想早点休息。"
+                  placeholder={t("mood.placeholder.note")}
 
                   className="mt-2 w-full min-h-[74px] resize-none rounded-2xl border border-white/60 bg-white/80 px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-emerald-200"
 
@@ -1298,21 +1317,21 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                 <div className="mt-2 flex flex-wrap gap-2">
 
-                  {["进展不错", "有点累", "心里很轻", "被打断好多次", "想吃点好吃的", "需要一点安静"].map((t) => (
+                  {quickNotes.map((item) => (
 
                     <button
 
-                      key={t}
+                      key={item}
 
                       type="button"
 
-                      onClick={() => addQuickNote(t)}
+                      onClick={() => addQuickNote(item)}
 
                       className="rounded-full px-3 py-1 text-[12px] font-bold border border-white/60 bg-white/70 hover:bg-white transition"
 
                     >
 
-                      {t}
+                      {item}
 
                     </button>
 
@@ -1334,7 +1353,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   >
 
-                    保存记录
+                    {t("mood.action.save_record")}
 
                   </button>
 
@@ -1352,7 +1371,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                       setShakeNonce((n) => n + 1);
 
-                      showToast("已重置编辑内容");
+                      showToast(t("mood.toast.reset"));
 
                     }}
 
@@ -1360,7 +1379,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                   >
 
-                    清空
+                    {t("mood.action.clear")}
 
                   </button>
 
@@ -1384,23 +1403,23 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                 className="w-full flex items-center justify-between gap-3"
 
-                title="展开/收起历史"
+                title={t("mood.action.toggle_history")}
 
               >
 
                 <div className="text-left">
 
-                  <div className="text-[12px] font-extrabold uppercase tracking-[0.22em] text-slate-500">History</div>
+                  <div className="text-[12px] font-extrabold uppercase tracking-[0.22em] text-slate-500">{t("mood.section.history")}</div>
 
-                  <div className="mt-1 text-[12px] text-slate-600">近 7 天 · 点击切换日期</div>
+                  <div className="mt-1 text-[12px] text-slate-600">{t("mood.note.history_hint")}</div>
 
                 </div>
 
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/70 px-3 py-1 text-[12px] font-bold text-slate-700">
 
-                  <span>{historyOpen ? "收起" : "展开"}</span>
+                  <span>{historyOpen ? t("mood.action.collapse") : t("mood.action.expand")}</span>
 
-                  <span className="text-slate-500">{historyOpen ? "?" : "?"}</span>
+                  <span className="text-slate-500">{historyOpen ? "\u25B2" : "\u25BC"}</span>
 
                 </div>
 
@@ -1436,13 +1455,13 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                       ].join(" ")}
 
-                      title={`${e.date} · ${moodLabel(e.mood)} · 强度 ${e.intensity}`}
+                      title={`${e.date} · ${moodLabel(e.mood, t)} · ${t("mood.label.intensity")} ${e.intensity}`}
 
                     >
 
                       <div className="text-[10px] font-extrabold text-slate-600 tabular-nums">{shortMD(e.date)}</div>
 
-                      <div className="mt-1 text-[10px] font-semibold text-slate-500">{weekdayCN(e.date)}</div>
+                      <div className="mt-1 text-[10px] font-semibold text-slate-500">{weekdayLabel(e.date, t, lang)}</div>
 
                       <div className="mt-2 mx-auto h-2 w-2 rounded-full" style={{ background: v.accent }} />
 
@@ -1477,17 +1496,17 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                     <div className="mt-3 text-[12px] text-slate-600">
 
-                      当前查看：
+                      {t("mood.note.current_view")}
 
                       <span className="ml-1 font-extrabold text-slate-800">{shortMD(editingDay)}</span>
 
                       <span className="mx-2 text-slate-400">·</span>
 
-                      <span className="font-semibold">{moodLabel(mood)}</span>
+                      <span className="font-semibold">{moodLabel(mood, t)}</span>
 
                       <span className="mx-2 text-slate-400">·</span>
 
-                      <span className="font-semibold">强度 {intensity}/5</span>
+                      <span className="font-semibold">{t("mood.label.intensity")} {intensity}/5</span>
 
                     </div>
 
@@ -1497,7 +1516,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                       <div className="mt-2 rounded-2xl border border-white/60 bg-white/75 p-3 text-[12px] text-slate-700">
 
-                        <div className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-500">Note</div>
+                        <div className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-500">{t("mood.section.record")}</div>
 
                         <div className="mt-1 font-semibold leading-relaxed">{note.trim()}</div>
 
@@ -1505,7 +1524,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
 
                     ) : (
 
-                      <div className="mt-2 text-[12px] text-slate-500">这一天没有记录文字。</div>
+                      <div className="mt-2 text-[12px] text-slate-500">{t("mood.note.no_record")}</div>
 
                     )}
 
@@ -1528,6 +1547,7 @@ export const MoodBottle = ({ onClose }: { onClose: () => void }) => {
   );
 
 };
+
 
 
 

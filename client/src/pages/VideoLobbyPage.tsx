@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { videoAPI } from '@/services/api';
 import { ArrowsPointingOutIcon } from '@heroicons/react/24/outline';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function VideoLobbyPage() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [creating, setCreating] = useState(false);
-  const [title, setTitle] = useState('快速会议');
+  const [title, setTitle] = useState('');
   const [roomIdOrLink, setRoomIdOrLink] = useState('');
 
   const normalizedRoomId = useMemo(() => {
@@ -27,15 +29,15 @@ export default function VideoLobbyPage() {
   const createAndEnter = async () => {
     setCreating(true);
     try {
-      const res = await videoAPI.createRoom({ title: title.trim() || '快速会议' });
+      const res = await videoAPI.createRoom({ title: title.trim() || t('快速会议') });
       const room = res.data;
       const id = room?.id || room?.roomId;
       if (id) {
-        toast.success('会议已创建');
+        toast.success(t('会议已创建'));
         navigate(`/video/${id}`);
       }
     } catch (e: any) {
-      toast.error('创建会议失败');
+      toast.error(t('创建会议失败'));
     } finally {
       setCreating(false);
     }
@@ -43,7 +45,7 @@ export default function VideoLobbyPage() {
 
   const join = () => {
     if (!normalizedRoomId) {
-      toast.error('请输入会议ID');
+      toast.error(t('请输入会议ID'));
       return;
     }
     navigate(`/video/${normalizedRoomId}`);
@@ -51,7 +53,7 @@ export default function VideoLobbyPage() {
 
   const openInNewWindow = () => {
     if (!normalizedRoomId) {
-        toast.error('请先输入会议ID');
+        toast.error(t('请先输入会议ID'));
         return;
     }
     const width = 1200;
@@ -68,8 +70,8 @@ export default function VideoLobbyPage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-xl shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">📹 视频会议大厅</h1>
-        <p className="text-gray-500 mb-8">极速、稳定、安全的实时视频通讯</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">📹 {t('视频会议大厅')}</h1>
+        <p className="text-gray-500 mb-8">{t('极速、稳定、安全的实时视频通讯')}</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* 创建会议 */}
@@ -77,12 +79,12 @@ export default function VideoLobbyPage() {
             className="border-2 border-dashed rounded-xl p-6 surface-soft"
             style={{ borderColor: 'var(--primary-soft-border)' }}
           >
-            <h2 className="text-xl font-semibold text-primary-900 mb-4">创建新会议</h2>
+            <h2 className="text-xl font-semibold text-primary-900 mb-4">{t('创建新会议')}</h2>
             <input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-primary-500"
-              placeholder="会议主题"
+              placeholder={t('会议主题')}
             />
 
             <button
@@ -90,30 +92,30 @@ export default function VideoLobbyPage() {
               disabled={creating}
               className="w-full py-3 rounded-lg font-medium btn-soft"
             >
-              {creating ? '正在创建...' : '立即发起会议'}
+              {creating ? t('正在创建...') : t('立即发起会议')}
             </button>
           </div>
 
           {/* 加入会议 */}
           <div className="border border-gray-200 rounded-xl p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">加入会议</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('加入会议')}</h2>
             <input
               value={roomIdOrLink}
               onChange={(e) => setRoomIdOrLink(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-primary-500"
-              placeholder="输入会议号或链接"
+              placeholder={t('输入会议号或链接')}
             />
             <div className="flex gap-3">
               <button
                 onClick={join}
                 className="flex-1 py-3 bg-gray-900 text-white rounded-lg hover:bg-gray-800 font-medium transition"
               >
-                进入房间
+                {t('进入房间')}
               </button>
               <button
                 onClick={openInNewWindow}
                 className="px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
-                title="在新窗口打开 (推荐)"
+                title={t('在新窗口打开 (推荐)')}
               >
                 <ArrowsPointingOutIcon className="w-6 h-6" />
               </button>

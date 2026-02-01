@@ -2,8 +2,10 @@
 import { motion } from 'framer-motion';
 import { PlayIcon, PauseIcon, StopIcon } from '@heroicons/react/24/solid';
 import confetti from 'canvas-confetti';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export const FocusTimer = ({ onClose }: { onClose: () => void }) => {
+  const { t } = useLanguage();
   const [duration, setDuration] = useState(25);
   const [timeLeft, setTimeLeft] = useState(25 * 60);
   const [isActive, setIsActive] = useState(false);
@@ -65,7 +67,7 @@ export const FocusTimer = ({ onClose }: { onClose: () => void }) => {
                 initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }}
                 className="absolute top-4 right-6 bg-pink-500 text-white text-[10px] px-2 py-0.5 rounded-full"
              >
-                 嘘..学习中
+                 {t('嘘..学习中')}
              </motion.div>
          )}
       </div>
@@ -78,10 +80,10 @@ export const FocusTimer = ({ onClose }: { onClose: () => void }) => {
       {/* 控制区 */}
       {mode === 'reward' ? (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="text-center w-full">
-            <p className="text-pink-600 font-bold mb-1">专注达成！🎉</p>
-            <p className="text-xs text-pink-400 mb-4">获得一颗专注糖果</p>
+            <p className="text-pink-600 font-bold mb-1">{t('专注达成！')} <span aria-hidden>🎉</span></p>
+            <p className="text-xs text-pink-400 mb-4">{t('获得一颗专注糖果')}</p>
             <button onClick={reset} className="w-full bg-pink-400 text-white py-2 rounded-xl font-bold shadow-md hover:bg-pink-500 hover:scale-105 transition-all">
-                开心收下
+                {t('开心收下')}
             </button>
         </motion.div>
       ) : (
@@ -95,7 +97,7 @@ export const FocusTimer = ({ onClose }: { onClose: () => void }) => {
                             onClick={() => { setDuration(m); setTimeLeft(m*60); }}
                             className={`text-xs px-3 py-1 rounded-full border ${duration === m ? 'bg-pink-100 border-pink-300 text-pink-600' : 'border-slate-200 text-slate-400'}`}
                         >
-                            {m}min
+                            {t('{count}分钟', { count: m })}
                         </button>
                     ))}
                 </div>
@@ -121,7 +123,7 @@ export const FocusTimer = ({ onClose }: { onClose: () => void }) => {
                     onClick={() => setPet(p => p === 'bunny' ? 'puppy' : 'bunny')}
                     className="mt-4 w-full text-xs text-slate-400 hover:text-pink-400 underline"
                 >
-                    切换陪学伙伴: {pet === 'bunny' ? '小白兔' : '修狗'}
+                    {t('切换陪学伙伴: {pet}', { pet: pet === 'bunny' ? t('小白兔') : t('修狗') })}
                 </button>
             )}
         </div>
