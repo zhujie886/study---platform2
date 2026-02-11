@@ -531,6 +531,7 @@ function CreatePostModal({ onClose, onSuccess }: CreatePostModalProps) {
   const [visibility, setVisibility] = useState<'public' | 'followers' | 'private'>('public');
   const [loading, setLoading] = useState(false);
   const { token } = useAuthStore();
+  const { t } = useLanguage();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

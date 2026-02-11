@@ -8,7 +8,7 @@ export const DashboardSidebarContainer = ({ children }: { children: React.ReactN
 
   return (
     <div 
-      className={sidebar-transition relative h-full bg-white border-r border-gray-200 shadow-sm }
+      className="sidebar-transition relative h-full bg-white border-r border-gray-200 shadow-sm"
     >
       <button 
         onClick={() => setCollapsed(!collapsed)}

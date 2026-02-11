@@ -256,6 +256,7 @@ export const DoodleNote = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const canvasFrameRef = useRef<HTMLDivElement>(null);
+  const { t } = useLanguage();
 
 
 
