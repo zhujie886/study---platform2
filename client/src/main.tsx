@@ -14,9 +14,34 @@ const getLang = (): Lang => {
   return saved === 'en' || saved === 'zh' ? saved : 'zh';
 };
 
+const CJK_RE = /[\u3400-\u9fff]/;
+const legacyKeyCache = new Map<string, string>();
+
+const toLegacyMojibakeKey = (key: string): string => {
+  if (!CJK_RE.test(key)) return key;
+  const cached = legacyKeyCache.get(key);
+  if (cached) return cached;
+  try {
+    const converted = new TextDecoder('gbk').decode(new TextEncoder().encode(key));
+    legacyKeyCache.set(key, converted);
+    return converted;
+  } catch {
+    legacyKeyCache.set(key, key);
+    return key;
+  }
+};
+
 const t = (key: string, fallback?: string) => {
   const lang = getLang();
-  return translations[lang]?.[key] || translations.zh[key] || fallback || key;
+  const legacyKey = toLegacyMojibakeKey(key);
+  return (
+    translations[lang]?.[key] ||
+    translations[lang]?.[legacyKey] ||
+    translations.zh[key] ||
+    translations.zh[legacyKey] ||
+    fallback ||
+    key
+  );
 };
 
 // 全局错误处理

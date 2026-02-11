@@ -10,6 +10,23 @@ type LangContextValue = {
 const LanguageContext = createContext<LangContextValue | undefined>(undefined);
 
 const STORAGE_KEY = 'app_lang';
+const CJK_RE = /[\u3400-\u9fff]/;
+const legacyKeyCache = new Map<string, string>();
+
+function toLegacyMojibakeKey(key: string): string {
+  if (!CJK_RE.test(key)) return key;
+  const cached = legacyKeyCache.get(key);
+  if (cached) return cached;
+  try {
+    // Legacy dictionaries accidentally stored some Chinese keys as UTF-8 bytes decoded by GBK.
+    const converted = new TextDecoder('gbk').decode(new TextEncoder().encode(key));
+    legacyKeyCache.set(key, converted);
+    return converted;
+  } catch {
+    legacyKeyCache.set(key, key);
+    return key;
+  }
+}
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => {
@@ -26,7 +43,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const t = useMemo(() => {
     return (key: string, vars?: Record<string, string | number>, fallback?: string) => {
       const table = translations[lang] || translations.zh;
-      let template = table[key] || translations.zh[key] || fallback || key;
+      const legacyKey = toLegacyMojibakeKey(key);
+      let template =
+        table[key] ||
+        table[legacyKey] ||
+        translations.zh[key] ||
+        translations.zh[legacyKey] ||
+        fallback ||
+        key;
       if (vars) {
         Object.entries(vars).forEach(([k, v]) => {
           template = template.replace(new RegExp(`\\{${k}\\}`, 'g'), String(v));
