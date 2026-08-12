@@ -45,5 +45,10 @@ tmp/
 temp/
 *.tmp
 
+# Secrets / SSH keys (e.g. old AWS EC2 access)
+*.ppk
+*.pem
+*.key
+
 
 
