@@ -1,10 +1,9 @@
 ﻿import axios from 'axios';
 
 // 优先使用环境变量，回退到本地开发地址
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const CONFIGURED_API_URL = String(import.meta.env.VITE_API_URL || '').trim();
+const API_BASE = CONFIGURED_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : window.location.origin);
 const API_URL = String(API_BASE).endsWith('/api') ? String(API_BASE) : `${String(API_BASE).replace(/\/$/, '')}/api`;
-
-console.log('🚀 API base:', API_URL);
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -190,7 +189,6 @@ export const adminAPI = {
   deleteUser: (id: string) => api.delete(`/admin/users/${id}`),
   logs: (params?: { type?: 'out' | 'err'; lines?: number }) => api.get('/admin/logs', { params }),
 };
-
 
 
 
